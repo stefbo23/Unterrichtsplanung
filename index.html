@@ -119,7 +119,21 @@ function openLessonModal(key,ti,si,d){editingLessonKey=key; const L=lessons[key]
   {name:'Verarbeiten',beschreibung:'',min:15},
   {name:'Auswerten',beschreibung:'',min:7}
 ]; renderPhaseList(); $('#lessonImport').style.display='none'; $('#lessonImportText').value=''}
-function renderPhaseList(){const box=$('#phaseList'); box.innerHTML=''; phaseData.forEach((p,i)=>{const row=document.createElement('div'); row.className='phase-row'; row.innerHTML=`<input value="${p.name||''}" oninput="phaseData[${i}].name=this.value"><input class="mins" type="number" value="${p.min||''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value"><button class="rm" onclick="phaseData.splice(${i},1);renderPhaseList()">✕</button>`; box.appendChild(row)})}
+function renderPhaseList(){
+  const box = $('#phaseList');
+  box.innerHTML = '';
+  phaseData.forEach((p,i)=>{
+    const row = document.createElement('div');
+    row.className = 'phase-row';
+    row.innerHTML = `
+      <input value="${p.name||''}" oninput="phaseData[${i}].name=this.value" placeholder="Phase">
+      <input class="mins" type="number" value="${p.min||''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value" placeholder="Min">
+      <button class="rm" onclick="phaseData.splice(${i},1);renderPhaseList()">✕</button>
+      <textarea oninput="phaseData[${i}].beschreibung=this.value" placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?">${p.beschreibung||''}</textarea>
+    `;
+    box.appendChild(row);
+  });
+}
 function addPhase(){phaseData.push({name:'Phase',min:10}); renderPhaseList()}
 function saveLesson(){const fach=$('#lfach').value; if(!fach) return toast('Bitte Fach wählen'); lessons[editingLessonKey]={fach,thema:$('#lthema').value,kompetenz:$('#lkomp').value,verknuepfung:$('#lverk').value,mindestziel:$('#lmgoal').value,diffUnten:$('#ldown').value,diffOben:$('#lup').value,sozialformen:$('#lsocial').value,material:$('#lmat').value,methoden:[...selectedMethods],phasen:JSON.parse(JSON.stringify(phaseData))}; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gespeichert ✓')}
 function deleteLesson(){if(!editingLessonKey) return; delete lessons[editingLessonKey]; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gelöscht')}
