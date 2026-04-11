@@ -357,6 +357,26 @@ main{padding:20px;max-width:1300px;margin:0 auto}
     <div class="field"><label>Lehrplanbezug / Einheit</label><input type="text" id="mKomp" placeholder="z.B. Zahlen bis 100"></div>
     <div class="field"><label>Fächerübergreifend</label><input type="text" id="mVerk" placeholder="z.B. Deutsch: Sachtext lesen"></div>
     <div class="field">
+  <label>Mindestziel</label>
+  <input type="text" id="mMindestziel" placeholder="Was alle Kinder am Ende können sollen">
+</div>
+
+<div class="row">
+  <div class="field">
+    <label>Differenzierung nach unten</label>
+    <textarea id="mDiffUnten" placeholder="Hilfen, Vereinfachungen, reduzierte Aufgaben..."></textarea>
+  </div>
+  <div class="field">
+    <label>Differenzierung nach oben</label>
+    <textarea id="mDiffOben" placeholder="Erweiterungen, Transfer, Zusatzaufgaben..."></textarea>
+  </div>
+</div>
+
+<div class="field">
+  <label>Sozialformen</label>
+  <input type="text" id="mSozialformen" placeholder="z.B. Plenum, EA, PA, GA">
+</div>
+    <div class="field">
       <label>Methoden</label>
       <div class="methoden-grid" id="mMethoden"></div>
     </div>
@@ -778,6 +798,10 @@ function showTagDetail(key,si){
     ${lesson.methoden&&lesson.methoden.length?`<div class="detail-sect"><div class="detail-sect-label">Methoden</div><div class="detail-methoden">${mHtml}</div></div>`:''}
     ${lesson.kompetenz?`<div class="detail-sect"><div class="detail-sect-label">Lehrplanbezug</div><div class="detail-sect-val">${lesson.kompetenz}</div></div>`:''}
     ${lesson.verknuepfung?`<div class="detail-sect"><div class="detail-sect-label">Fächerübergreifend</div><div class="detail-sect-val">${lesson.verknuepfung}</div></div>`:''}
+    ${lesson.mindestziel?`<div class="detail-sect"><div class="detail-sect-label">Mindestziel</div><div class="detail-sect-val">${lesson.mindestziel}</div></div>`:''}
+${lesson.diffUnten?`<div class="detail-sect"><div class="detail-sect-label">Differenzierung nach unten</div><div class="detail-sect-val">${lesson.diffUnten}</div></div>`:''}
+${lesson.diffOben?`<div class="detail-sect"><div class="detail-sect-label">Differenzierung nach oben</div><div class="detail-sect-val">${lesson.diffOben}</div></div>`:''}
+${lesson.sozialformen?`<div class="detail-sect"><div class="detail-sect-label">Sozialformen</div><div class="detail-sect-val">${lesson.sozialformen}</div></div>`:''}
     ${lesson.material?`<div class="detail-sect"><div class="detail-sect-label">Material / Notizen</div><div class="detail-sect-val">${lesson.material}</div></div>`:''}`;
 }
 function changeTag(d){ currentTagDate.setDate(currentTagDate.getDate()+d); while(isWeekend(currentTagDate)) currentTagDate.setDate(currentTagDate.getDate()+d); selTagBlock=null; renderTag(); }
@@ -834,13 +858,25 @@ function openModal(key,ti,si,d){
   document.getElementById('mKomp').value=lesson.kompetenz||'';
   document.getElementById('mVerk').value=lesson.verknuepfung||'';
   document.getElementById('mNotizen').value=lesson.material||'';
+  document.getElementById('mMindestziel').value = lesson.mindestziel || '';
+document.getElementById('mDiffUnten').value = lesson.diffUnten || '';
+document.getElementById('mDiffOben').value = lesson.diffOben || '';
+document.getElementById('mSozialformen').value = lesson.sozialformen || '';
   document.getElementById('mBtnDel').style.display=lesson.fach?'':'none';
   document.getElementById('mImportBox').style.display='none';
   document.getElementById('mImportText').value='';
   selMethoden=lesson.methoden||[];
   const mg=document.getElementById('mMethoden'); mg.innerHTML='';
   METHODEN.forEach(m=>{ const c=document.createElement('div'); c.className='mchip'+(selMethoden.includes(m)?' on':''); c.textContent=m; c.onclick=()=>{ c.classList.toggle('on'); if(c.classList.contains('on')) { if(!selMethoden.includes(m)) selMethoden.push(m); } else selMethoden=selMethoden.filter(x=>x!==m); }; mg.appendChild(c); });
-  phasenData=lesson.phasen?JSON.parse(JSON.stringify(lesson.phasen)):[];
+  phasenData = lesson.phasen
+  ? JSON.parse(JSON.stringify(lesson.phasen))
+  : [
+      {name:'Ankommen', min:5},
+      {name:'Vorwissen aktivieren', min:8},
+      {name:'Informieren', min:10},
+      {name:'Verarbeiten', min:15},
+      {name:'Auswerten', min:7}
+    ];
   renderPhasenList();
 }
 function renderPhasenList(){
@@ -857,7 +893,19 @@ function closeModalBg(e){ if(e.target===document.getElementById('modalOverlay'))
 function saveLesson(){
   if(!editingKey) return;
   const fach=document.getElementById('mFach').value; if(!fach){ toast('Bitte Fach wählen'); return; }
-  lessons[editingKey]={ fach, thema:document.getElementById('mThema').value, kompetenz:document.getElementById('mKomp').value, verknuepfung:document.getElementById('mVerk').value, material:document.getElementById('mNotizen').value, methoden:[...selMethoden], phasen:JSON.parse(JSON.stringify(phasenData)) };
+  lessons[editingKey] = {
+  fach,
+  thema: document.getElementById('mThema').value,
+  kompetenz: document.getElementById('mKomp').value,
+  verknuepfung: document.getElementById('mVerk').value,
+  mindestziel: document.getElementById('mMindestziel').value,
+  diffUnten: document.getElementById('mDiffUnten').value,
+  diffOben: document.getElementById('mDiffOben').value,
+  sozialformen: document.getElementById('mSozialformen').value,
+  material: document.getElementById('mNotizen').value,
+  methoden: [...selMethoden],
+  phasen: JSON.parse(JSON.stringify(phasenData))
+};
   saveState(); closeModal();
   const activeView=document.querySelector('.view.on');
   if(activeView?.id==='view-woche') renderWeek();
@@ -879,6 +927,12 @@ function importStundeJSON() {
     document.getElementById('mKomp').value = data.kompetenz || '';
     document.getElementById('mVerk').value = data.verknuepfung || '';
     document.getElementById('mNotizen').value = data.material || '';
+    document.getElementById('mMindestziel').value = data.mindestziel || '';
+document.getElementById('mDiffUnten').value = data.differenzierung_unten || '';
+document.getElementById('mDiffOben').value = data.differenzierung_oben || '';
+document.getElementById('mSozialformen').value = Array.isArray(data.sozialformen)
+  ? data.sozialformen.join(', ')
+  : (data.sozialformen || '');
     selMethoden = Array.isArray(data.methoden) ? data.methoden : [];
     phasenData = Array.isArray(data.phasen) ? data.phasen : [];
     renderPhasenList();
@@ -1021,12 +1075,14 @@ function closeImportModal(id) { document.getElementById(id).classList.remove('op
 function closeImportModalBg(event, id) { if (event.target === document.getElementById(id)) closeImportModal(id); }
 
 function copyStundePrompt() {
+  function copyStundePrompt() {
   const klasse = getKlasse();
   const fach = document.getElementById('mFach').value || 'deutsch';
   const thema = document.getElementById('mThema').value || '';
   const kompetenz = document.getElementById('mKomp').value || '';
   const verkn = document.getElementById('mVerk').value || '';
   const aktiveBuecher = getAktiveBuecherText();
+
   const prompt = `Erstelle eine einzelne Unterrichtsstunde für eine ${klasse}. Klasse Volksschule in Österreich.
 
 Rahmen:
@@ -1036,13 +1092,22 @@ Rahmen:
 - Fächerübergreifend: ${verkn || 'wenn sinnvoll'}
 - Lehrwerke: ${aktiveBuecher}
 
-Wichtig:
-- altersgerecht für Volksschule
+Wichtige Anforderungen:
+- Plane die Stunde nach dem AVIVA-Modell.
+- Die Phasen müssen klar und getrennt dargestellt werden:
+  1. Ankommen
+  2. Vorwissen aktivieren
+  3. Informieren
+  4. Verarbeiten
+  5. Auswerten
+- Altersgerecht für Volksschule
 - österreichischer Kontext
-- Differenzierung für schnellere und langsamere Kinder
+- Differenzierung für stärkere und schwächere Kinder
 - ohne Handy
-- Gen-Alpha-gerecht: aktiv, klar, abwechslungsreich
+- Gen-Alpha-gerecht: aktiv, anschaulich, klar strukturiert
+- Sozialformen sinnvoll auswählen
 - nur praktikable Methoden
+
 ${getPromptZusatz()}
 
 Antworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:
@@ -1052,18 +1117,41 @@ Antworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:
   "thema": "string",
   "kompetenz": "string",
   "verknuepfung": "string",
-  "methoden": ["string", "string"],
+  "mindestziel": "string",
+  "sozialformen": ["Plenum", "Einzelarbeit", "Partnerarbeit"],
   "phasen": [
-    {"name": "Einstieg", "min": 10},
-    {"name": "Erarbeitung", "min": 20},
-    {"name": "Übung", "min": 10},
-    {"name": "Sicherung", "min": 5}
+    {
+      "name": "Ankommen",
+      "beschreibung": "string",
+      "min": 5
+    },
+    {
+      "name": "Vorwissen aktivieren",
+      "beschreibung": "string",
+      "min": 8
+    },
+    {
+      "name": "Informieren",
+      "beschreibung": "string",
+      "min": 10
+    },
+    {
+      "name": "Verarbeiten",
+      "beschreibung": "string",
+      "min": 15
+    },
+    {
+      "name": "Auswerten",
+      "beschreibung": "string",
+      "min": 7
+    }
   ],
+  "differenzierung_unten": "string",
+  "differenzierung_oben": "string",
   "material": "string"
 }`;
   copyText(prompt);
 }
-
 function copyTagPrompt() {
   const klasse = getKlasse();
   const aktiveBuecher = getAktiveBuecherText();
