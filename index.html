@@ -85,8 +85,7 @@ function monthBreaks(year,month,sy){return (BREAKS[sy]||[]).filter(f=>{const s=n
 function phaseColor(name,i=0){const n=(name||'').toLowerCase(); if(n.includes('ankommen')) return '#888780'; if(n.includes('vorwissen')) return '#D4A843'; if(n.includes('inform')) return '#3A7BA7'; if(n.includes('verarbeit')) return '#4A7C6F'; if(n.includes('auswert')||n.includes('reflex')) return '#C8523A'; return ['#4A7C6F','#C8523A','#D4A843','#3A7BA7','#888780'][i%5]}
 function copyText(text){navigator.clipboard.writeText(text).then(()=>toast('Prompt kopiert ✓')).catch(()=>alert('Kopieren nicht möglich. Bitte Text manuell kopieren.'))}
 function activeBooks(){return Object.entries(selectedBooks).filter(([,v])=>v).map(([k])=>k).join(', ')||'keine speziellen Lehrwerke ausgewählt'}
-function extraPrompt(){const parts=[]; const focus=$('#focus').value.trim(); if(focus) parts.push(`Schwerpunktthemen: ${focus}`); if($('#optMethods').checked) parts.push('Methoden sollen konkret und praktikabel sein.'); if($('#optPhases').checked) parts.push('Phasierung soll klar sichtbar sein.'); if($('#optGen').checked) parts.push('Gen Alpha berücksichtigen: aktiv, kurz, anschaulich, ohne Handy.'); return parts.join('
-')}
+function extraPrompt(){const parts=[]; const focus=$('#focus').value.trim(); if(focus) parts.push(`Schwerpunktthemen: ${focus}`); if($('#optMethods').checked) parts.push('Methoden sollen konkret und praktikabel sein.'); if($('#optPhases').checked) parts.push('Phasierung soll klar sichtbar sein.'); if($('#optGen').checked) parts.push('Gen Alpha berücksichtigen: aktiv, kurz, anschaulich, ohne Handy.'); return parts.join('\n')}
 function saveState(){localStorage.setItem('vs_all',JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value,currentDay:dateKey(currentDay)}))}
 function loadState(){try{const d=JSON.parse(localStorage.getItem('vs_all')||'{}'); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; if(d.focus!==undefined) $('#focus').value=d.focus; if(d.optMethods!==undefined) $('#optMethods').checked=d.optMethods; if(d.optPhases!==undefined) $('#optPhases').checked=d.optPhases; if(d.optGen!==undefined) $('#optGen').checked=d.optGen; if(d.klasse) $('#klasse').value=d.klasse; if(d.currentDay) currentDay=new Date(d.currentDay+'T12:00:00')}catch(e){}}
 function exportData(){const blob=new Blob([JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vs-planung-${dateKey(new Date())}.json`; a.click(); URL.revokeObjectURL(url); toast('Export erstellt ✓')}
@@ -120,185 +119,12 @@ function deletePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthE
 function openChildModal(id=null){editingChildId=id; const c=id?children.find(x=>x.id==id):null; $('#childModal').classList.add('open'); $('#childTitle').textContent=c?'Kind bearbeiten':'Kind anlegen'; $('#cname').value=c?.name||''; $('#cclass').innerHTML=['1','2','3','4'].map(k=>`<option value="${k}">${k}. Klasse</option>`).join(''); $('#cclass').value=c?.class||$('#klasse').value; $('#cdesc').value=c?.desc||''; $('#cstrength').value=c?.strength||''; $('#cmeasure').value=c?.measure||''; $('#childDelete').style.display=c?'':'none'; $$('.area').forEach(a=>{const on=(c?.areas||[]).includes(a.dataset.area); a.classList.toggle('on',on); a.style.background=on?AREAS[a.dataset.area]:''})}
 function saveChild(){const name=$('#cname').value.trim(); if(!name) return toast('Bitte Name eingeben'); const entry={id:editingChildId||Date.now(),name,class:+$('#cclass').value,areas:$$('.area.on').map(a=>a.dataset.area),desc:$('#cdesc').value,strength:$('#cstrength').value,measure:$('#cmeasure').value}; if(editingChildId){const i=children.findIndex(x=>x.id==editingChildId); if(i>=0) children[i]=entry; else children.push(entry)} else children.push(entry); saveState(); closeModal('childModal'); renderChildren(); toast('Kind gespeichert ✓')}
 function deleteChild(){if(!editingChildId) return; children=children.filter(x=>x.id!=editingChildId); saveState(); closeModal('childModal'); renderChildren(); $('#childDetail').innerHTML='<div class="detail-empty">Kein Kind ausgewählt</div>'; toast('Kind gelöscht')}
-function copyLessonPrompt(){const klasse=$('#klasse').value||'1', fach=$('#lfach').value||'deutsch', thema=$('#lthema').value||'', komp=$('#lkomp').value||'', verk=$('#lverk').value||''; copyText(`Erstelle eine einzelne Unterrichtsstunde für eine ${klasse}. Klasse Volksschule in Österreich.
-
-Rahmen:
-- Fach: ${fach}
-- Thema: ${thema||'passend wählen'}
-- Lehrplanbezug: ${komp||'passend formulieren'}
-- Fächerübergreifend: ${verk||'wenn sinnvoll'}
-- Lehrwerke: ${activeBooks()}
-
-Wichtige Anforderungen:
-- Plane die Stunde nach dem AVIVA-Modell.
-- Phasen: Ankommen, Vorwissen aktivieren, Informieren, Verarbeiten, Auswerten
-- Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein, außerdem die passende Sozialform und die Differenzierung in dieser Phase.
-- altersgerecht für Volksschule
-- Differenzierung für stärkere und schwächere Kinder
-- ohne Handy
-- Sozialformen sinnvoll auswählen
-- Formuliere so klar, dass auch Anfängerinnen sofort damit arbeiten können.
-${extraPrompt()}
-
-Antworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:
-
-{
-  \"fach\": \"deutsch\",
-  \"thema\": \"string\",
-  \"kompetenz\": \"string\",
-  \"verknuepfung\": \"string\",
-  \"mindestziel\": \"string\",
-  \"sozialformen\": [\"Plenum\",\"Partnerarbeit\"],
-  \"methoden\": [\"string\",\"string\"],
-  \"phasen\": [
-    {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},
-    {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},
-    {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},
-    {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},
-    {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}
-  ],
-  \"differenzierung_unten\": \"string\",
-  \"differenzierung_oben\": \"string\",
-  \"material\": \"string\"
-}`)}
-function copyDayPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.
-
-Rahmen:
-- 6 Unterrichtsstunden
-- Für jede Stunde sollen die AVIVA-Phasen auch inhaltlich beschrieben sein.
-- Lehrwerke: ${activeBooks()}
-- Differenzierung für stärkere und schwächere Kinder
-- fächerübergreifende Verknüpfungen müssen sichtbar sein
-- Gen-Alpha-gerecht, ohne Handy
-${extraPrompt()}
-
-Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
-
-[
-  {
-    \"stunde\":0,
-    \"fach\":\"deutsch\",
-    \"thema\":\"string\",
-    \"kompetenz\":\"string\",
-    \"verknuepfung\":\"string\",
-    \"mindestziel\":\"string\",
-    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],
-    \"methoden\":[\"string\",\"string\"],
-    \"phasen\":[
-      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},
-      {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},
-      {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},
-      {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},
-      {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}
-    ],
-    \"differenzierung_unten\":\"string\",
-    \"differenzierung_oben\":\"string\",
-    \"material\":\"string\"
-  }
-]
-
-Wichtig: genau 6 Einträge, stunde 0 bis 5.`)}
-function copyWochePrompt(){const klasse=$('#klasse').value||'1', mon=getMonday(weekOffset); copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.
-
-Rahmen:
-- 5 Tage: Montag bis Freitag
-- 6 Unterrichtsstunden pro Tag
-- Für jede Stunde sollen die AVIVA-Phasen auch inhaltlich beschrieben sein.
-- Lehrwerke: ${activeBooks()}
-- sinnvolle Fächerverteilung
-- Differenzierung für stärkere und schwächere Kinder
-- fächerübergreifende Verknüpfungen müssen sichtbar sein
-- Gen-Alpha-gerecht, ohne Handy
-${extraPrompt()}
-
-Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
-
-[
-  {
-    \"tag\":0,
-    \"stunde\":0,
-    \"fach\":\"deutsch\",
-    \"thema\":\"string\",
-    \"kompetenz\":\"string\",
-    \"verknuepfung\":\"string\",
-    \"mindestziel\":\"string\",
-    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],
-    \"methoden\":[\"string\",\"string\"],
-    \"phasen\":[
-      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},
-      {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},
-      {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},
-      {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},
-      {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}
-    ],
-    \"differenzierung_unten\":\"string\",
-    \"differenzierung_oben\":\"string\",
-    \"material\":\"string\"
-  }
-]
-
-Wichtig: genau 30 Einträge, tag 0 bis 4, stunde 0 bis 5.`)}
-function copyMonthPrompt(){const klasse=$('#klasse').value||'1', m=currentMonthObj(); copyText(`Erstelle eine Monatsplanung für ${MONTHS[m.month]} ${m.year} für eine ${klasse}. Klasse Volksschule in Österreich.
-
-Rahmen:
-- Lehrwerke: ${activeBooks()}
-- mehrere sinnvolle Einheiten im Monat
-- jahreszeitliche Themen berücksichtigen
-- fächerübergreifende Verknüpfungen müssen sichtbar sein
-${extraPrompt()}
-
-Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
-
-[
-  {
-    \"fach\":\"deutsch\",
-    \"thema\":\"string\",
-    \"von\":\"YYYY-MM-DD\",
-    \"bis\":\"YYYY-MM-DD\",
-    \"kompetenz\":\"string\",
-    \"verknuepfung\":\"string\",
-    \"notizen\":\"string\"
-  }
-]
-
-Wichtig: alle Einträge müssen im Monat ${MONTHS[m.month]} ${m.year} liegen.`)}
-function copyYearPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen Jahresplan für das Schuljahr ${schoolYear} für eine ${klasse}. Klasse Volksschule in Österreich.
-
-Rahmen:
-- Lehrwerke: ${activeBooks()}
-- über alle relevanten Fächer verteilt
-- jahreszeitliche Themen berücksichtigen
-- fächerübergreifende Verknüpfungen müssen sichtbar sein
-${extraPrompt()}
-
-Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
-
-[
-  {
-    \"fach\":\"deutsch\",
-    \"thema\":\"string\",
-    \"von\":\"YYYY-MM-DD\",
-    \"bis\":\"YYYY-MM-DD\",
-    \"kompetenz\":\"string\",
-    \"verknuepfung\":\"string\",
-    \"notizen\":\"string\"
-  }
-]`)}
-function copyChildPrompt(id){const c=children.find(x=>x.id==id); if(!c) return toast('Kind nicht gefunden'); copyText(`Erstelle einen Förderplan für ein Kind der ${c.class}. Klasse in Österreich.
-
-Daten:
-- Name/Kürzel: ${c.name}
-- Förderbereiche: ${(c.areas||[]).join(', ')}
-- Beobachtungen: ${c.desc||'-'}
-- Stärken: ${c.strength||'-'}
-- Laufende Maßnahmen: ${c.measure||'-'}
-
-Antworte als klar strukturierter Text mit:
-1. Kurzfristige Ziele
-2. Mittelfristige Ziele
-3. Fördermaßnahmen im Unterricht
-4. Materialien/Methoden
-5. Hinweise für Gespräche mit Eltern`)}
+function copyLessonPrompt(){const klasse=$('#klasse').value||'1', fach=$('#lfach').value||'deutsch', thema=$('#lthema').value||'', komp=$('#lkomp').value||'', verk=$('#lverk').value||''; copyText(`Erstelle eine einzelne Unterrichtsstunde für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Fach: ${fach}\n- Thema: ${thema||'passend wählen'}\n- Lehrplanbezug: ${komp||'passend formulieren'}\n- Fächerübergreifend: ${verk||'wenn sinnvoll'}\n- Lehrwerke: ${activeBooks()}\n\nWichtige Anforderungen:\n- Plane die Stunde nach dem AVIVA-Modell.\n- Phasen: Ankommen, Vorwissen aktivieren, Informieren, Verarbeiten, Auswerten\n- Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein, außerdem die passende Sozialform und die Differenzierung in dieser Phase.\n- altersgerecht für Volksschule\n- Differenzierung für stärkere und schwächere Kinder\n- ohne Handy\n- Sozialformen sinnvoll auswählen\n- Formuliere so klar, dass auch Anfängerinnen sofort damit arbeiten können.\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:\n\n{\n  \"fach\": \"deutsch\",\n  \"thema\": \"string\",\n  \"kompetenz\": \"string\",\n  \"verknuepfung\": \"string\",\n  \"mindestziel\": \"string\",\n  \"sozialformen\": [\"Plenum\",\"Partnerarbeit\"],\n  \"methoden\": [\"string\",\"string\"],\n  \"phasen\": [\n    {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},\n    {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},\n    {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},\n    {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},\n    {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}\n  ],\n  \"differenzierung_unten\": \"string\",\n  \"differenzierung_oben\": \"string\",\n  \"material\": \"string\"\n}`)}
+function copyDayPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- 6 Unterrichtsstunden\n- Für jede Stunde sollen die AVIVA-Phasen auch inhaltlich beschrieben sein.\n- Lehrwerke: ${activeBooks()}\n- Differenzierung für stärkere und schwächere Kinder\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n- Gen-Alpha-gerecht, ohne Handy\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"stunde\":0,\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"mindestziel\":\"string\",\n    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],\n    \"methoden\":[\"string\",\"string\"],\n    \"phasen\":[\n      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},\n      {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},\n      {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},\n      {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},\n      {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}\n    ],\n    \"differenzierung_unten\":\"string\",\n    \"differenzierung_oben\":\"string\",\n    \"material\":\"string\"\n  }\n]\n\nWichtig: genau 6 Einträge, stunde 0 bis 5.`)}
+function copyWochePrompt(){const klasse=$('#klasse').value||'1', mon=getMonday(weekOffset); copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- 5 Tage: Montag bis Freitag\n- 6 Unterrichtsstunden pro Tag\n- Für jede Stunde sollen die AVIVA-Phasen auch inhaltlich beschrieben sein.\n- Lehrwerke: ${activeBooks()}\n- sinnvolle Fächerverteilung\n- Differenzierung für stärkere und schwächere Kinder\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n- Gen-Alpha-gerecht, ohne Handy\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"tag\":0,\n    \"stunde\":0,\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"mindestziel\":\"string\",\n    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],\n    \"methoden\":[\"string\",\"string\"],\n    \"phasen\":[\n      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},\n      {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},\n      {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},\n      {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},\n      {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}\n    ],\n    \"differenzierung_unten\":\"string\",\n    \"differenzierung_oben\":\"string\",\n    \"material\":\"string\"\n  }\n]\n\nWichtig: genau 30 Einträge, tag 0 bis 4, stunde 0 bis 5.`)}
+function copyMonthPrompt(){const klasse=$('#klasse').value||'1', m=currentMonthObj(); copyText(`Erstelle eine Monatsplanung für ${MONTHS[m.month]} ${m.year} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Lehrwerke: ${activeBooks()}\n- mehrere sinnvolle Einheiten im Monat\n- jahreszeitliche Themen berücksichtigen\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"von\":\"YYYY-MM-DD\",\n    \"bis\":\"YYYY-MM-DD\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"notizen\":\"string\"\n  }\n]\n\nWichtig: alle Einträge müssen im Monat ${MONTHS[m.month]} ${m.year} liegen.`)}
+function copyYearPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen Jahresplan für das Schuljahr ${schoolYear} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Lehrwerke: ${activeBooks()}\n- über alle relevanten Fächer verteilt\n- jahreszeitliche Themen berücksichtigen\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"von\":\"YYYY-MM-DD\",\n    \"bis\":\"YYYY-MM-DD\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"notizen\":\"string\"\n  }\n]`)}
+function copyChildPrompt(id){const c=children.find(x=>x.id==id); if(!c) return toast('Kind nicht gefunden'); copyText(`Erstelle einen Förderplan für ein Kind der ${c.class}. Klasse in Österreich.\n\nDaten:\n- Name/Kürzel: ${c.name}\n- Förderbereiche: ${(c.areas||[]).join(', ')}\n- Beobachtungen: ${c.desc||'-'}\n- Stärken: ${c.strength||'-'}\n- Laufende Maßnahmen: ${c.measure||'-'}\n\nAntworte als klar strukturierter Text mit:\n1. Kurzfristige Ziele\n2. Mittelfristige Ziele\n3. Fördermaßnahmen im Unterricht\n4. Materialien/Methoden\n5. Hinweise für Gespräche mit Eltern`)}
 function openImport(id){$('#'+id).classList.add('open')} function toggleImport(id){const el=$('#'+id); el.style.display=el.style.display==='block'?'none':'block'}
 function importDayJson(){const t=$('#importDayText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>{let stunde=Number(e.stunde); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; lessons[`${dateKey(currentDay)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importDay'); renderWeek(); renderTag(); toast('Tagesplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Tagesplan.')}}
 function importWeekJson(){const t=$('#importWeekText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); const mon=getMonday(weekOffset); arr.forEach(e=>{let tag=e.tag; let stunde=Number(e.stunde); if(typeof tag==='string') tag=DAYS.indexOf(tag); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(tag)||tag<0||tag>4) return; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; const d=new Date(mon.getTime()+tag*86400000); lessons[`${dateKey(d)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importWeek'); renderWeek(); renderTag(); toast('Wochenplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Wochenplan.')}}
