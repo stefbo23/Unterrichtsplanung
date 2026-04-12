@@ -176,17 +176,33 @@ function openLessonModal(key, ti, si, d){
 function renderPhaseList(){
   const box = $('#phaseList');
   box.innerHTML = '';
-
-  phaseData.forEach((p, i) => {
+  phaseData.forEach((p,i)=>{
     const row = document.createElement('div');
     row.className = 'phase-row';
-
-    row.innerHTML = `
-      <input value="${p.name || ''}" oninput="phaseData[${i}].name=this.value">
-      <input class="mins" type="number" value="${p.min || ''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value">
-      <button class="rm" onclick="phaseData.splice(${i},1);renderPhaseList()">✕</button>
-    `;
-
+    row.innerHTML = 
+      <div class="phase-head">
+        <div class="phase-title" style="background:${phaseColor(p.name,i)}">
+          ${p.name}
+        </div>
+        <input class="mins" type="number" value="${p.min||''}" min="1" max="60"
+          oninput="phaseData[${i}].min=+this.value" placeholder="Min">
+      </div>
+      <div class="phase-grid">
+        <textarea
+          oninput="phaseData[${i}].beschreibung=this.value"
+          placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?"
+        >${p.beschreibung||''}</textarea>
+        <input
+          value="${p.sozialform||''}"
+          oninput="phaseData[${i}].sozialform=this.value"
+          placeholder="Sozialform"
+        >
+        <textarea
+          oninput="phaseData[${i}].differenzierung=this.value"
+          placeholder="Differenzierung in dieser Phase"
+        >${p.differenzierung||''}</textarea>
+      </div>
+    ;
     box.appendChild(row);
   });
 }
