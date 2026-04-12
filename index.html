@@ -214,7 +214,6 @@ function copyMonthPrompt(){const klasse=$('#klasse').value||'1', m=currentMonthO
 function copyYearPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen Jahresplan für das Schuljahr ${schoolYear} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Lehrwerke: ${activeBooks()}\n- über alle relevanten Fächer verteilt\n- jahreszeitliche Themen berücksichtigen\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"von\":\"YYYY-MM-DD\",\n    \"bis\":\"YYYY-MM-DD\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"notizen\":\"string\"\n  }\n]`)}
 function copyChildPrompt(id){const c=children.find(x=>x.id==id); if(!c) return toast('Kind nicht gefunden'); copyText(`Erstelle einen Förderplan für ein Kind der ${c.class}. Klasse in Österreich.\n\nDaten:\n- Name/Kürzel: ${c.name}\n- Förderbereiche: ${(c.areas||[]).join(', ')}\n- Beobachtungen: ${c.desc||'-'}\n- Stärken: ${c.strength||'-'}\n- Laufende Maßnahmen: ${c.measure||'-'}\n\nAntworte als klar strukturierter Text mit:\n1. Kurzfristige Ziele\n2. Mittelfristige Ziele\n3. Fördermaßnahmen im Unterricht\n4. Materialien/Methoden\n5. Hinweise für Gespräche mit Eltern`) }
 function openImport(id){$('#'+id).classList.add('open')} function toggleImport(id){const el=$('#'+id); el.style.display=el.style.display==='block'?'none':'block'}
-function importDayJson(){const t=$('#importDayText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>{lessons[`${dateKey(currentDay)}_${e.stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importDay'); renderWeek(); saveState();  //renderTag(); toast('Tagesplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Tagesplan.')}}
 function importDayJson(){
   const t = $('#importDayText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
@@ -253,6 +252,7 @@ function importDayJson(){
   } catch(e){
     alert('Ungültiges JSON für Tagesplan.');
   }
+}
 function importWeekJson(){
   const t = $('#importWeekText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
@@ -301,7 +301,8 @@ function importWeekJson(){
   } catch(e){
     alert('Ungültiges JSON für Wochenplan.');
   }
-}function importYearJson(){const t=$('#importYearText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>yearEntries.push({id:Date.now()+Math.random(),fach:e.fach||'',thema:e.thema||'',von:e.von||'',bis:e.bis||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',notizen:e.notizen||''})); saveState(); closeModal('importYear'); renderYear(); toast('Jahresplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Jahresplan.')}}
+}
+function importYearJson(){const t=$('#importYearText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>yearEntries.push({id:Date.now()+Math.random(),fach:e.fach||'',thema:e.thema||'',von:e.von||'',bis:e.bis||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',notizen:e.notizen||''})); saveState(); closeModal('importYear'); renderYear(); toast('Jahresplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Jahresplan.')}}
 function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffset=0; renderWeek()}
 function changeTag(d){currentDay.setDate(currentDay.getDate()+d); while(isWeekend(currentDay)) currentDay.setDate(currentDay.getDate()+d); selectedSlot=null; renderTag(); saveState()} function goTodayDay(){currentDay=new Date(); currentDay.setHours(0,0,0,0); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}
 function changeMonth(d){const arr=schoolMonths(schoolYear); monthPos=Math.max(0,Math.min(arr.length-1,monthPos+d)); renderMonth(); saveState()}
