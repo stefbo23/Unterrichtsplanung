@@ -26,15 +26,13 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 .month-layout{display:grid;grid-template-columns:300px 1fr;gap:16px}@media(max-width:920px){.month-layout{grid-template-columns:1fr}}.months{display:flex;flex-direction:column;gap:7px}.month-item{background:var(--paper);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer}.month-item.on{border-color:var(--green);background:var(--green-l)}.month-pane{background:var(--paper);border:1.5px solid var(--border);border-radius:12px;padding:18px}.entry{background:var(--bg);border-left:3px solid var(--gray);border-radius:8px;padding:8px 10px;margin-bottom:8px;cursor:pointer}.entry:hover{background:#ece4d7}.entry-f{font-size:.66rem;text-transform:uppercase;font-weight:700}.entry-t{font-size:.8rem}.entry-m{font-size:.7rem;color:var(--muted);margin-top:3px}
 .year-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}.year-card{background:var(--paper);border:1.5px solid var(--border);border-radius:11px;overflow:hidden}.year-head{background:var(--ink);color:#fff;padding:9px 12px;display:flex;justify-content:space-between}.year-body{padding:10px}.break{background:linear-gradient(135deg,var(--amber),#E8C060);border-radius:7px;padding:6px 10px;font-size:.74rem;font-weight:700;margin-bottom:6px}.add{width:100%;padding:7px;border:1.5px dashed var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer}
 .foerd{display:grid;grid-template-columns:280px 1fr;gap:16px}@media(max-width:860px){.foerd{grid-template-columns:1fr}}.kids{display:flex;flex-direction:column;gap:6px}.kid{background:var(--bg);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;display:flex;gap:10px;cursor:pointer}.kid.on{border-color:var(--green);background:var(--green-l)}.avatar{width:34px;height:34px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}.tagpill{font-size:.62rem;padding:1px 6px;border-radius:4px;color:#fff;font-weight:700}.areas{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:7px}.area{padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:.76rem;text-align:center;cursor:pointer}.area.on{color:#fff}
-.modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:16px}.modal-wrap.open{display:flex}.modal{background:var(--paper);border-radius:16px;padding:22px;width:100%;max-width:760px;max-height:88vh;overflow-y:auto}.modal-title{font-size:1.08rem;font-weight:700}.modal-sub{font-size:.82rem;color:var(--muted);margin-bottom:16px}.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.method{padding:6px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.73rem;text-align:center;cursor:pointer}.method.on{background:var(--green);border-color:var(--green);color:#fff}.phase-list{display:flex;flex-direction:column;gap:6px}
-.phase-row{background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:10px;margin-bottom:10px}
-.phase-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
-.phase-title{color:#fff;border-radius:999px;padding:4px 10px;font-size:.72rem;font-weight:700;flex:1}
-.phase-grid{display:grid;grid-template-columns:1fr 120px;gap:8px}
-.phase-grid textarea{min-height:60px;resize:vertical}
-.phase-grid input,.phase-grid textarea{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff;font-family:Arial,sans-serif;font-size:.85rem}
-.mins{width:80px;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff}
-.rm{display:none}
+.modal-wrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center;padding:16px}.modal-wrap.open{display:flex}.modal{background:var(--paper);border-radius:16px;padding:22px;width:100%;max-width:760px;max-height:88vh;overflow-y:auto}.modal-title{font-size:1.08rem;font-weight:700}.modal-sub{font-size:.82rem;color:var(--muted);margin-bottom:16px}.method-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.method{padding:6px 8px;border:1.5px solid var(--border);border-radius:7px;font-size:.73rem;text-align:center;cursor:pointer}.method.on{background:var(--green);border-color:var(--green);color:#fff}..phase-list{display:flex;flex-direction:column;gap:6px}
+.phase-row{display:grid;grid-template-columns:1.1fr 72px 32px;gap:6px;align-items:start}
+.phase-row input{width:100%}
+.phase-row textarea{grid-column:1 / span 2;min-height:58px;resize:vertical;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff}
+.mins{width:72px}
+.rm{width:28px;height:28px;border-radius:6px;border:1.5px solid var(--border);background:transparent;cursor:pointer}.import{display:none;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;padding:12px;margin-top:10px}.import textarea{min-height:140px}.actions{display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1.5px solid var(--border)}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ink);color:#fff;padding:10px 16px;border-radius:8px;opacity:0;transform:translateY(20px);transition:all .25s}.toast.show{opacity:1;transform:translateY(0)}
 .legend{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}.pill{font-size:.68rem;padding:4px 8px;border-radius:999px;color:#fff;font-weight:700}
 </style>
 </head>
@@ -58,26 +56,7 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
   <div class="view" id="view-foerderung"><div class="foerd"><div><div class="card"><div class="title">🌱 Kinder mit Förderbedarf</div><div class="kids" id="kids"></div><button class="add" onclick="openChildModal()">+ Kind hinzufügen</button></div></div><div class="card" id="childDetail"><div class="detail-empty">Kind auswählen</div></div></div></div>
   <div class="view" id="view-einrichtung"><div class="card"><div class="title">Lehrwerke auswählen</div><div class="field"><label>Deutsch</label><div id="chips-deutsch"></div></div><div class="field"><label>Mathematik</label><div id="chips-mathe"></div></div><div class="field"><label>Englisch</label><div id="chips-englisch"></div></div></div><div class="card"><div class="title">Stunden pro Fach / Woche</div><div id="stdGrid"></div><div style="font-size:.75rem;color:var(--muted);margin-top:8px">Gesamt: <span id="stdTotal"></span> Std/Woche</div></div><div class="card"><div class="title">Prompt-Einstellungen</div><div class="field"><label>Schwerpunktthemen</label><textarea id="focus"></textarea></div><div style="display:flex;flex-direction:column;gap:8px"><label><input type="checkbox" id="optMethods" checked /> Methoden berücksichtigen</label><label><input type="checkbox" id="optPhases" checked /> Phasierung verlangen</label><label><input type="checkbox" id="optGen" checked /> Gen Alpha / kurze Sequenzen</label></div><div style="margin-top:12px"><button class="btn btn-green" onclick="saveState()">💾 Einstellungen speichern</button></div></div></div>
 </main>
-<div class="modal-wrap" id="lessonModal"><div class="modal"><div class="modal-title" id="lessonModalTitle"></div><div class="modal-sub" id="lessonModalSub"></div><div class="note" style="margin-bottom:14px">Einzelstunden werden nach <b>AVIVA</b> gedacht:<div class="legend"><span class="pill" style="background:#888780">Ankommen</span><span class="pill" style="background:#D4A843">Vorwissen</span><span class="pill" style="background:#3A7BA7">Informieren</span><span class="pill" style="background:#4A7C6F">Verarbeiten</span><span class="pill" style="background:#C8523A">Auswerten</span></div></div><div class="field"><label>Fach</label><select id="lfach"></select></div><div class="field"><label>Thema</label><input id="lthema"></div><div class="field"><label>Lehrplanbezug / Einheit</label><input id="lkomp"></div><div class="field"><label>Fächerübergreifend</label><input id="lverk"></div><div class="field"><label>Mindestziel</label><input id="lmgoal"></div><div class="row"><div class="field"><label>Differenzierung nach unten</label><textarea id="ldown"></textarea></div><div class="field"><label>Differenzierung nach oben</label><textarea id="lup"></textarea></div></div><div class="field"><label>Sozialformen</label><input id="lsocial"></div><div class="field"><label>Methoden</label><div class="method-grid" id="methodGrid"></div></div><div class="field"><label>Phasierung (AVIVA)</label><div class="phase-list" id="phaseList"></div><button class="btn btn-outline btn-sm" onclick="addPhase()">+ Phase</button></div><div class="field"><label>Material / Notizen</label><textarea id="lmat"></textarea></div>
-
-<div class="import" id="lessonImport">
-  <div class="field">
-    <label>JSON einfügen</label>
-    <textarea id="lessonImportText"></textarea>
-  </div>
-  <button class="btn btn-green btn-sm" onclick="importLessonJson()">Übernehmen</button>
-</div>
-
-<div class="actions">
-  <button class="btn btn-outline btn-sm" onclick="closeModal('lessonModal')">Abbrechen</button>
-  <button class="btn btn-outline btn-sm" id="lessonDelete" onclick="deleteLesson()">Löschen</button>
-  <button class="btn btn-outline btn-sm" onclick="copyLessonPrompt()">📋 Prompt kopieren</button>
-  <button class="btn btn-outline btn-sm" onclick="toggleImport('lessonImport')">📥 JSON einfügen</button>
-  <button class="btn btn-green btn-sm" onclick="saveLesson()">Speichern</button>
-</div>
-</div></div>
-
-<div class="modal-wrap" id="planModal">
+<div class="modal-wrap" id="lessonModal"><div class="modal"><div class="modal-title" id="lessonModalTitle"></div><div class="modal-sub" id="lessonModalSub"></div><div class="note" style="margin-bottom:14px">Einzelstunden werden nach <b>AVIVA</b> gedacht:<div class="legend"><span class="pill" style="background:#888780">Ankommen</span><span class="pill" style="background:#D4A843">Vorwissen</span><span class="pill" style="background:#3A7BA7">Informieren</span><span class="pill" style="background:#4A7C6F">Verarbeiten</span><span class="pill" style="background:#C8523A">Auswerten</span></div></div><div class="field"><label>Fach</label><select id="lfach"></select></div><div class="field"><label>Thema</label><input id="lthema"></div><div class="field"><label>Lehrplanbezug / Einheit</label><input id="lkomp"></div><div class="field"><label>Fächerübergreifend</label><input id="lverk"></div><div class="field"><label>Mindestziel</label><input id="lmgoal"></div><div class="row"><div class="field"><label>Differenzierung nach unten</label><textarea id="ldown"></textarea></div><div class="field"><label>Differenzierung nach oben</label><textarea id="lup"></textarea></div></div><div class="field"><label>Sozialformen</label><input id="lsocial"></div><div class="field"><label>Methoden</label><div class="method-grid" id="methodGrid"></div></div><div class="field"><label>Phasierung (AVIVA)</label><div class="phase-list" id="phaseList"></div><button class="btn btn-outline btn-sm" onclick="addPhase()">+ Phase</button></div><div class="field"><label>Material / Notizen</label><textarea id="lmat"></textarea></div><div class="import" id="lessonImport"><div class="field"><label>JSON einfügen</label><textarea id="lessonImportText"></textarea></div><button class="btn btn-green btn-sm" onclick="importLessonJson()">Übernehmen</button></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('lessonModal')">Abbrechen</button><button class="btn btn-outline btn-sm" id="lessonDelete" onclick="deleteLesson()">Löschen</button><button class="btn btn-outline btn-sm" onclick="copyLessonPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="toggleImport('lessonImport')">📥 JSON einfügen</button><button class="btn btn-green btn-sm" onclick="saveLesson()">Speichern</button></div></div></div>
 <div class="modal-wrap" id="planModal"><div class="modal"><div class="modal-title" id="planTitle"></div><div class="modal-sub" id="planSub"></div><div class="field"><label>Fach</label><select id="pfach"></select></div><div class="field"><label>Thema / Einheit</label><input id="pthema"></div><div class="row"><div class="field"><label>Von</label><input type="date" id="pfrom"></div><div class="field"><label>Bis</label><input type="date" id="pto"></div></div><div class="field"><label>Kompetenzen</label><textarea id="pkomp"></textarea></div><div class="field"><label>Verknüpfungen</label><input id="pverk"></div><div class="field"><label>Notizen</label><textarea id="pnote"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('planModal')">Abbrechen</button><button class="btn btn-outline btn-sm" id="planDelete" onclick="deletePlanEntry()">Löschen</button><button class="btn btn-green btn-sm" onclick="savePlanEntry()">Speichern</button></div></div></div>
 <div class="modal-wrap" id="childModal"><div class="modal"><div class="modal-title" id="childTitle"></div><div class="field"><label>Name / Kürzel</label><input id="cname"></div><div class="field"><label>Schulstufe</label><select id="cclass"></select></div><div class="field"><label>Förderbereiche</label><div class="areas" id="areas"></div></div><div class="field"><label>Beobachtungen / Schwierigkeiten</label><textarea id="cdesc"></textarea></div><div class="field"><label>Stärken</label><textarea id="cstrength"></textarea></div><div class="field"><label>Laufende Maßnahmen</label><input id="cmeasure"></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('childModal')">Abbrechen</button><button class="btn btn-outline btn-sm" id="childDelete" onclick="deleteChild()">Löschen</button><button class="btn btn-green btn-sm" onclick="saveChild()">Speichern</button></div></div></div>
 <div class="modal-wrap" id="importDay"><div class="modal"><div class="modal-title">Tagesplan JSON einfügen</div><div class="field"><textarea id="importDayText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importDay')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importDayJson()">Übernehmen</button></div></div></div>
@@ -129,13 +108,11 @@ function insertUnit(fach,book,unit){if(!$('#lessonModal').classList.contains('op
 function renderWeek(){const mon=getMonday(weekOffset); $('#weekLabel').textContent=`KW ${getKW(mon)} · ${mon.getFullYear()}`; const g=$('#weekGrid'); g.innerHTML=''; g.insertAdjacentHTML('beforeend','<div class="head empty"></div>'); DAYS.forEach((d,i)=>{const dt=new Date(mon.getTime()+i*86400000); g.insertAdjacentHTML('beforeend',`<div class="head"><div>${d}</div><div style="font-weight:300;opacity:.6;font-size:.67rem">${fmtDate(dt)}</div></div>`)}) ; for(let s=0;s<6;s++){g.insertAdjacentHTML('beforeend',`<div class="time"><div>${s+1}.<br><span style="font-size:.62rem">${TIMES[s]}</span></div></div>`); DAYS.forEach((_,ti)=>{const d=new Date(mon.getTime()+ti*86400000), key=`${dateKey(d)}_${s}`, L=lessons[key]; const cell=document.createElement('div'); cell.className='cell'+(L&&L.fach?' has':''); if(L&&L.fach) cell.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; cell.innerHTML=L&&L.fach?`<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`:`<div class="empty">+ planen</div>`; cell.onclick=()=>openLessonModal(key,ti,s,d); g.appendChild(cell)})}}
 function renderTag(){if(isWeekend(currentDay)){currentDay.setDate(currentDay.getDate()+1); return renderTag()} $('#dayLabel').textContent=fmtLong(currentDay); $('#dayPicker').value=dateKey(currentDay); const line=$('#dayLine'); line.innerHTML=''; for(let s=0;s<6;s++){if(s>0&&PAUSES[s-1]) line.insertAdjacentHTML('beforeend','<div class="pause">☕ Pause</div>'); const key=`${dateKey(currentDay)}_${s}`, L=lessons[key]; const div=document.createElement('div'); div.className='slot'+(L&&L.fach?' has':'')+(selectedSlot===s?' on':''); if(L&&L.fach) div.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; div.innerHTML=`<div class="slot-time">${s+1}. Std · ${TIMES[s]}</div>${L&&L.fach?`<div class="slot-fach" style="color:${SCOL[L.fach]}">${SUBJECTS[L.fach]||L.fach}</div><div class="slot-thema">${L.thema||''}</div>`:`<div class="empty">+ Stunde planen</div>`}`; div.onclick=()=>{selectedSlot=s; renderTag(); renderDayDetail(key,s)}; div.ondblclick=()=>openLessonModal(key,-1,s,currentDay); line.appendChild(div)} if(selectedSlot!==null) renderDayDetail(`${dateKey(currentDay)}_${selectedSlot}`,selectedSlot); else $('#dayDetail').innerHTML='<div class="detail-empty">← Stunde auswählen</div>'}
 function renderDayDetail(key,s){const L=lessons[key]; const box=$('#dayDetail'); if(!L||!L.fach){box.innerHTML=`<div class="detail-empty"><div><div style="margin-bottom:12px">${s+1}. Stunde · ${TIMES[s]}</div><button class="btn btn-green" onclick="openLessonModal('${key}',-1,${s},currentDay)">+ Stunde planen</button></div></div>`; return} const phases=(L.phasen||[]).map((p,i)=>`<div class="phase" style="background:${phaseColor(p.name,i)}"><span>${p.name}</span><small>${p.min||''}′</small></div>`).join(''); const phaseDetails=(L.phasen||[]).map((p,i)=>`
-   <div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px">
-    <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:${phaseColor(p.name,i)};margin-bottom:6px">
+  <div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px">
+    <div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:var(--muted);margin-bottom:4px">
       ${p.name} · ${p.min||''} Min
     </div>
-    <div class="sect-val" style="margin-bottom:6px">${p.beschreibung||'—'}</div>
-    ${p.sozialform?`<div style="font-size:.76rem;margin-bottom:4px"><b>Sozialform:</b> ${p.sozialform}</div>`:''}
-    ${p.differenzierung?`<div style="font-size:.76rem"><b>Differenzierung:</b> ${p.differenzierung}</div>`:''}
+    <div class="sect-val">${p.beschreibung||'—'}</div>
   </div>
 `).join('');const methods=(L.methoden||[]).map(m=>`<span class="chip">${m}</span>`).join(''); box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px"><div><div class="detail-title">${L.thema||'(kein Thema)'}</div><div class="detail-sub">${s+1}. Stunde · ${TIMES[s]}</div></div><button class="btn btn-outline btn-sm" onclick="openLessonModal('${key}',-1,${s},currentDay)">✏ Bearbeiten</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span style="background:${SCOL[L.fach]};color:#fff;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700">${SUBJECTS[L.fach]||L.fach}</span></div>${L.phasen?.length?`
   <div class="sect">
@@ -151,92 +128,29 @@ function renderMonth(){const cur=currentMonthObj(); $('#monthLabel').textContent
 function renderYear(){ $('#yearLabel').textContent=`Schuljahr ${schoolYear}`; const grid=$('#yearGrid'); grid.innerHTML=''; schoolMonths(schoolYear).forEach(m=>{const card=document.createElement('div'); card.className='year-card'; const breaks=monthBreaks(m.year,m.month,schoolYear); const entries=yearEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===m.year&&new Date(e.von).getMonth()===m.month); card.innerHTML=`<div class="year-head"><div>${MONTHS[m.month]} ${m.year}</div><div>${entries.length} Einträge</div></div>`; const body=document.createElement('div'); body.className='year-body'; breaks.forEach(b=>body.insertAdjacentHTML('beforeend',`<div class="break">🏖 ${b.name}</div>`)); entries.forEach(e=>{const el=document.createElement('div'); el.className='entry'; el.style.borderLeftColor=SCOL[e.fach]||'var(--gray)'; el.innerHTML=`<div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div><div class="entry-t">${e.thema||''}</div>${e.verknuepfung?`<div class="entry-m">🔗 ${e.verknuepfung}</div>`:''}`; el.onclick=()=>openPlanModal('year',e.id,m.year,m.month); body.appendChild(el)}); const add=document.createElement('button'); add.className='add'; add.textContent='+ Eintrag'; add.onclick=()=>openPlanModal('year',null,m.year,m.month); body.appendChild(add); card.appendChild(body); grid.appendChild(card)})}
 function renderChildren(){const box=$('#kids'); box.innerHTML=''; children.forEach(c=>{const initials=(c.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); const tags=(c.areas||[]).map(a=>`<span class="tagpill" style="background:${AREAS[a]||'#888'}">${a}</span>`).join(''); const el=document.createElement('div'); el.className='kid'; el.innerHTML=`<div class="avatar">${initials}</div><div><div style="font-weight:700">${c.name}</div><div style="margin-top:3px">${tags}</div></div>`; el.onclick=()=>showChild(c.id); box.appendChild(el)}); if(!children.length) $('#childDetail').innerHTML='<div class="detail-empty">Kind auswählen</div>'}
 function showChild(id){$$('.kid').forEach(x=>x.classList.remove('on')); const c=children.find(k=>k.id===id); if(!c) return; $$('.kid').forEach(k=>{if(k.textContent.includes(c.name)) k.classList.add('on')}); const tags=(c.areas||[]).map(a=>`<span class="tagpill" style="background:${AREAS[a]||'#888'}">${a}</span>`).join(''); $('#childDetail').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><div class="detail-title">${c.name}</div><div class="detail-sub">${c.class}. Klasse</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="copyChildPrompt('${id}')">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openChildModal('${id}')">✏ Bearbeiten</button></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${tags}</div>${c.desc?`<div class="sect"><div class="sect-label">Beobachtungen</div><div class="sect-val">${c.desc}</div></div>`:''}${c.strength?`<div class="sect"><div class="sect-label">Stärken</div><div class="sect-val">${c.strength}</div></div>`:''}${c.measure?`<div class="sect"><div class="sect-label">Laufende Maßnahmen</div><div class="sect-val">${c.measure}</div></div>`:''}`}
-function openLessonModal(key, ti, si, d){
-  editingLessonKey = key;
-
-  const L = lessons[key] || {};
-
-  $('#lessonModal').classList.add('open');
-  $('#lessonModalTitle').textContent = `${si + 1}. Stunde`;
-  $('#lessonModalSub').textContent = `${d ? fmtDate(d) : ''} · ${TIMES[si] || ''}`;
-
-  $('#lfach').value = L.fach || '';
-  $('#lthema').value = L.thema || '';
-  $('#lkomp').value = L.kompetenz || '';
-  $('#lverk').value = L.verknuepfung || '';
-  $('#lmgoal').value = L.mindestziel || '';
-  $('#ldown').value = L.diffUnten || '';
-  $('#lup').value = L.diffOben || '';
-  $('#lsocial').value = L.sozialformen || '';
-  $('#lmat').value = L.material || '';
-
-  $('#lessonDelete').style.display = L.fach ? '' : 'none';
-
-  selectedMethods = Array.isArray(L.methoden) ? [...L.methoden] : [];
-  $$('.method').forEach(m => {
-    m.classList.toggle('on', selectedMethods.includes(m.dataset.method));
-  });
-
-  phaseData = Array.isArray(L.phasen) && L.phasen.length
-    ? JSON.parse(JSON.stringify(L.phasen))
-    : [
-        {name:'Ankommen', min:5},
-        {name:'Vorwissen aktivieren', min:8},
-        {name:'Informieren', min:10},
-        {name:'Verarbeiten', min:15},
-        {name:'Auswerten', min:7}
-      ];
-
-  renderPhaseList();
-
-  $('#lessonImport').style.display = 'none';
-  $('#lessonImportText').value = '';
-}
+function openLessonModal(key,ti,si,d){editingLessonKey=key; const L=lessons[key]||{}; $('#lessonModal').classList.add('open'); $('#lessonModalTitle').textContent=`${si+1}. Stunde`; $('#lessonModalSub').textContent=`${d?fmtDate(d):''} · ${TIMES[si]||''}`; $('#lfach').value=L.fach||''; $('#lthema').value=L.thema||''; $('#lkomp').value=L.kompetenz||''; $('#lverk').value=L.verknuepfung||''; $('#lmgoal').value=L.mindestziel||''; $('#ldown').value=L.diffUnten||''; $('#lup').value=L.diffOben||''; $('#lsocial').value=L.sozialformen||''; $('#lmat').value=L.material||''; $('#lessonDelete').style.display=L.fach?'':'none'; selectedMethods=L.methoden||[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=L.phasen?JSON.parse(JSON.stringify(L.phasen)):[
+  {name:'Ankommen',beschreibung:'',min:5},
+  {name:'Vorwissen aktivieren',beschreibung:'',min:8},
+  {name:'Informieren',beschreibung:'',min:10},
+  {name:'Verarbeiten',beschreibung:'',min:15},
+  {name:'Auswerten',beschreibung:'',min:7}
+]; renderPhaseList(); $('#lessonImport').style.display='none'; $('#lessonImportText').value=''}
 function renderPhaseList(){
   const box = $('#phaseList');
   box.innerHTML = '';
   phaseData.forEach((p,i)=>{
     const row = document.createElement('div');
     row.className = 'phase-row';
-    row.innerHTML = 
-      <div class="phase-head">
-        <div class="phase-title" style="background:${phaseColor(p.name,i)}">
-          ${p.name}
-        </div>
-        <input class="mins" type="number" value="${p.min||''}" min="1" max="60"
-          oninput="phaseData[${i}].min=+this.value" placeholder="Min">
-      </div>
-      <div class="phase-grid">
-        <textarea
-          oninput="phaseData[${i}].beschreibung=this.value"
-          placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?"
-        >${p.beschreibung||''}</textarea>
-        <input
-          value="${p.sozialform||''}"
-          oninput="phaseData[${i}].sozialform=this.value"
-          placeholder="Sozialform"
-        >
-        <textarea
-          oninput="phaseData[${i}].differenzierung=this.value"
-          placeholder="Differenzierung in dieser Phase"
-        >${p.differenzierung||''}</textarea>
-      </div>
-    ;
+    row.innerHTML = `
+      <input value="${p.name||''}" oninput="phaseData[${i}].name=this.value" placeholder="Phase">
+      <input class="mins" type="number" value="${p.min||''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value" placeholder="Min">
+      <button class="rm" onclick="phaseData.splice(${i},1);renderPhaseList()">✕</button>
+      <textarea oninput="phaseData[${i}].beschreibung=this.value" placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?">${p.beschreibung||''}</textarea>
+    `;
     box.appendChild(row);
   });
 }
-function addPhase(){ resetAviva(); }
-
-function resetAviva(){
-  phaseData = [
-    {name:'Ankommen', beschreibung:'', sozialform:'Plenum', differenzierung:'', min:5},
-    {name:'Vorwissen aktivieren', beschreibung:'', sozialform:'Plenum', differenzierung:'', min:8},
-    {name:'Informieren', beschreibung:'', sozialform:'Plenum', differenzierung:'', min:10},
-    {name:'Verarbeiten', beschreibung:'', sozialform:'Einzelarbeit / Partnerarbeit', differenzierung:'', min:15},
-    {name:'Auswerten', beschreibung:'', sozialform:'Plenum', differenzierung:'', min:7}
-  ];
-  renderPhaseList();
-}
+function addPhase(){phaseData.push({name:'Phase',min:10}); renderPhaseList()}
 function saveLesson(){const fach=$('#lfach').value; if(!fach) return toast('Bitte Fach wählen'); lessons[editingLessonKey]={fach,thema:$('#lthema').value,kompetenz:$('#lkomp').value,verknuepfung:$('#lverk').value,mindestziel:$('#lmgoal').value,diffUnten:$('#ldown').value,diffOben:$('#lup').value,sozialformen:$('#lsocial').value,material:$('#lmat').value,methoden:[...selectedMethods],phasen:JSON.parse(JSON.stringify(phaseData))}; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gespeichert ✓')}
 function deleteLesson(){if(!editingLessonKey) return; delete lessons[editingLessonKey]; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gelöscht')}
 function importLessonJson(){const text=$('#lessonImportText').value.trim(); if(!text) return toast('Bitte JSON einfügen'); try{const d=JSON.parse(text); $('#lfach').value=d.fach||''; $('#lthema').value=d.thema||''; $('#lkomp').value=d.kompetenz||''; $('#lverk').value=d.verknuepfung||''; $('#lmgoal').value=d.mindestziel||''; $('#ldown').value=d.differenzierung_unten||''; $('#lup').value=d.differenzierung_oben||''; $('#lsocial').value=Array.isArray(d.sozialformen)?d.sozialformen.join(', '):(d.sozialformen||''); $('#lmat').value=d.material||''; selectedMethods=Array.isArray(d.methoden)?d.methoden:[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=Array.isArray(d.phasen)?d.phasen:[]; renderPhaseList(); $('#lessonImport').style.display='none'; toast('Stunden-JSON übernommen ✓')}catch(e){alert('Ungültiges JSON für Stunde.')}}
@@ -246,115 +160,28 @@ function deletePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthE
 function openChildModal(id=null){editingChildId=id; const c=id?children.find(x=>x.id==id):null; $('#childModal').classList.add('open'); $('#childTitle').textContent=c?'Kind bearbeiten':'Kind anlegen'; $('#cname').value=c?.name||''; $('#cclass').innerHTML=['1','2','3','4'].map(k=>`<option value="${k}">${k}. Klasse</option>`).join(''); $('#cclass').value=c?.class||$('#klasse').value; $('#cdesc').value=c?.desc||''; $('#cstrength').value=c?.strength||''; $('#cmeasure').value=c?.measure||''; $('#childDelete').style.display=c?'':'none'; $$('.area').forEach(a=>{const on=(c?.areas||[]).includes(a.dataset.area); a.classList.toggle('on',on); a.style.background=on?AREAS[a.dataset.area]:''})}
 function saveChild(){const name=$('#cname').value.trim(); if(!name) return toast('Bitte Name eingeben'); const entry={id:editingChildId||Date.now(),name,class:+$('#cclass').value,areas:$$('.area.on').map(a=>a.dataset.area),desc:$('#cdesc').value,strength:$('#cstrength').value,measure:$('#cmeasure').value}; if(editingChildId){const i=children.findIndex(x=>x.id==editingChildId); if(i>=0) children[i]=entry; else children.push(entry)} else children.push(entry); saveState(); closeModal('childModal'); renderChildren(); toast('Kind gespeichert ✓')}
 function deleteChild(){if(!editingChildId) return; children=children.filter(x=>x.id!=editingChildId); saveState(); closeModal('childModal'); renderChildren(); $('#childDetail').innerHTML='<div class="detail-empty">Kein Kind ausgewählt</div>'; toast('Kind gelöscht')}
-function copyLessonPrompt(){
-  const klasse=$('#klasse').value||'1';
-  const fach=$('#lfach').value||'deutsch';
-  const thema=$('#lthema').value||'';
-  const komp=$('#lkomp').value||'';
-  const verk=$('#lverk').value||'';
-  copyText(`Erstelle eine detaillierte Stundenplanung für Fach ${SUBJECTS[fach]||fach} in der ${klasse}. Klasse.\n\nThema: ${thema}\nKompetenzbereich: ${komp}\nVerknüpfung: ${verk}\n\n- Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein, außerdem die passende Sozialform und die Differenzierung in dieser Phase.\n\nGib das Ergebnis als reines JSON aus (keine Markdown-Blöcke):\n[\n  {\n    "fach": "${fach}",\n    "thema": "string",\n    "kompetenz": "string",\n    "phasen": [\n      {"name":"Ankommen","beschreibung":"string","sozialform":"string","differenzierung":"string","min":5},\n      {"name":"Vorwissen aktivieren","beschreibung":"string","sozialform":"string","differenzierung":"string","min":8},\n      {"name":"Informieren","beschreibung":"string","sozialform":"string","differenzierung":"string","min":10},\n      {"name":"Verarbeiten","beschreibung":"string","sozialform":"string","differenzierung":"string","min":15},\n      {"name":"Auswerten","beschreibung":"string","sozialform":"string","differenzierung":"string","min":7}\n    ],\n    "methoden": ["string"],\n    "material": "string"\n  }\n]${extraPrompt()}`)
-}
-function copyDayPrompt(){
-  const klasse=$('#klasse').value||'1';
-  copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\n- Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein, außerdem die passende Sozialform und die Differenzierung in dieser Phase.\n\nGib das Ergebnis als reines JSON aus (keine Markdown-Blöcke):\n[\n  {\n    "stunde": 1,\n    "fach": "string",\n    "thema": "string",\n    "kompetenz": "string",\n    "phasen": [\n      {"name":"Ankommen","beschreibung":"string","sozialform":"string","differenzierung":"string","min":5},\n      {"name":"Vorwissen aktivieren","beschreibung":"string","sozialform":"string","differenzierung":"string","min":8},\n      {"name":"Informieren","beschreibung":"string","sozialform":"string","differenzierung":"string","min":10},\n      {"name":"Verarbeiten","beschreibung":"string","sozialform":"string","differenzierung":"string","min":15},\n      {"name":"Auswerten","beschreibung":"string","sozialform":"string","differenzierung":"string","min":7}\n    ],\n    "methoden": ["string"],\n    "material": "string"\n  }\n]\n\nWichtig: Ausgabe muss REINES JSON sein!${extraPrompt()}`)
-}
-function copyWochePrompt(){
-  const klasse=$('#klasse').value||'1';
-  const mon=getMonday(weekOffset);
-  copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\n- Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein, außerdem die passende Sozialform und die Differenzierung in dieser Phase.\n\nGib das Ergebnis als reines JSON aus (keine Markdown-Blöcke):\n[\n  {\n    "tag": "Montag",\n    "stunde": 1,\n    "fach": "string",\n    "thema": "string",\n    "kompetenz": "string",\n    "phasen": [\n      {"name":"Ankommen","beschreibung":"string","sozialform":"string","differenzierung":"string","min":5},\n      {"name":"Vorwissen aktivieren","beschreibung":"string","sozialform":"string","differenzierung":"string","min":8},\n      {"name":"Informieren","beschreibung":"string","sozialform":"string","differenzierung":"string","min":10},\n      {"name":"Verarbeiten","beschreibung":"string","sozialform":"string","differenzierung":"string","min":15},\n      {"name":"Auswerten","beschreibung":"string","sozialform":"string","differenzierung":"string","min":7}\n    ],\n    "methoden": ["string"],\n    "material": "string"\n  }\n]\n\nWichtig: Ausgabe muss REINES JSON sein!${extraPrompt()}`)
-}
+function copyLessonPrompt(){const klasse=$('#klasse').value||'1', fach=$('#lfach').value||'deutsch', thema=$('#lthema').value||'', komp=$('#lkomp').value||'', verk=$('#lverk').value||''; copyText(`Erstelle eine einzelne Unterrichtsstunde für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Fach: ${fach}\n- Thema: ${thema||'passend wählen'}\n- Lehrplanbezug: ${komp||'passend formulieren'}\n- Fächerübergreifend: ${verk||'wenn sinnvoll'}\n- Lehrwerke: ${activeBooks()}\n\nWichtige Anforderungen:\n- Plane die Stunde nach dem AVIVA-Modell.\n- Phasen: Ankommen, Vorwissen aktivieren, Informieren, Verarbeiten, Auswerten\n- - Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein: Was macht die Lehrperson? Was tun die Kinder?- altersgerecht für Volksschule\n- Differenzierung für stärkere und schwächere Kinder\n- ohne Handy\n- Sozialformen sinnvoll auswählen\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:\n\n{\n  \"fach\": \"deutsch\",\n  \"thema\": \"string\",\n  \"kompetenz\": \"string\",\n  \"verknuepfung\": \"string\",\n  \"mindestziel\": \"string\",\n  \"sozialformen\": [\"Plenum\",\"Partnerarbeit\"],\n  \"methoden\": [\"string\",\"string\"],\n  \"phasen\": [\n    {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"min\":5},
+{\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"min\":8},
+{\"name\":\"Informieren\",\"beschreibung\":\"string\",\"min\":10},
+{\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"min\":15},
+{\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"min\":7}  ],\n  \"differenzierung_unten\": \"string\",\n  \"differenzierung_oben\": \"string\",\n  \"material\": \"string\"\n}`)}
+function copyDayPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- 6 Unterrichtsstunden\n- Lehrwerke: ${activeBooks()}\n- Differenzierung für stärkere und schwächere Kinder\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n- Plane die Stunde nach dem AVIVA-Modell.\n- Phasen: Ankommen, Vorwissen aktivieren, Informieren, Verarbeiten, Auswerten\n - Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein: Was macht die Lehrperson? Was tun die Kinder?\n - Gen-Alpha-gerecht, ohne Handy\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"stunde\":0,\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"mindestziel\":\"string\",\n    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],\n    \"methoden\":[\"string\",\"string\"],\n    \"phasen\":[\n      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"min\":5},
+{\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"min\":8},
+{\"name\":\"Informieren\",\"beschreibung\":\"string\",\"min\":10},
+{\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"min\":15},
+{\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"min\":7}   ],\n    \"differenzierung_unten\":\"string\",\n    \"differenzierung_oben\":\"string\",\n    \"material\":\"string\"\n  }\n]\n\nWichtig: genau 6 Einträge, stunde 0 bis 5.`)}
+function copyWochePrompt(){const klasse=$('#klasse').value||'1', mon=getMonday(weekOffset); copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- 5 Tage: Montag bis Freitag\n- 6 Unterrichtsstunden pro Tag\n- Lehrwerke: ${activeBooks()}\n- sinnvolle Fächerverteilung\n- Differenzierung für stärkere und schwächere Kinder\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n- Plane die Stunde nach dem AVIVA-Modell.\n- Phasen: Ankommen, Vorwissen aktivieren, Informieren, Verarbeiten, Auswerten\n - Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein: Was macht die Lehrperson? Was tun die Kinder?\n - Gen-Alpha-gerecht, ohne Handy\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"tag\":0,\n    \"stunde\":0,\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"mindestziel\":\"string\",\n    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],\n    \"methoden\":[\"string\",\"string\"],\n    \"phasen\":[\n     {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"min\":5},
+{\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"min\":8},
+{\"name\":\"Informieren\",\"beschreibung\":\"string\",\"min\":10},
+{\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"min\":15},
+{\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"min\":7}   ],\n    \"differenzierung_unten\":\"string\",\n    \"differenzierung_oben\":\"string\",\n    \"material\":\"string\"\n  }\n]\n\nWichtig: genau 30 Einträge, tag 0 bis 4, stunde 0 bis 5.`)}
 function copyMonthPrompt(){const klasse=$('#klasse').value||'1', m=currentMonthObj(); copyText(`Erstelle eine Monatsplanung für ${MONTHS[m.month]} ${m.year} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Lehrwerke: ${activeBooks()}\n- mehrere sinnvolle Einheiten im Monat\n- jahreszeitliche Themen berücksichtigen\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"von\":\"YYYY-MM-DD\",\n    \"bis\":\"YYYY-MM-DD\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"notizen\":\"string\"\n  }\n]\n\nWichtig: alle Einträge müssen im Monat ${MONTHS[m.month]} ${m.year} liegen.`)}
 function copyYearPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen Jahresplan für das Schuljahr ${schoolYear} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Lehrwerke: ${activeBooks()}\n- über alle relevanten Fächer verteilt\n- jahreszeitliche Themen berücksichtigen\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"von\":\"YYYY-MM-DD\",\n    \"bis\":\"YYYY-MM-DD\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"notizen\":\"string\"\n  }\n]`)}
 function copyChildPrompt(id){const c=children.find(x=>x.id==id); if(!c) return toast('Kind nicht gefunden'); copyText(`Erstelle einen Förderplan für ein Kind der ${c.class}. Klasse in Österreich.\n\nDaten:\n- Name/Kürzel: ${c.name}\n- Förderbereiche: ${(c.areas||[]).join(', ')}\n- Beobachtungen: ${c.desc||'-'}\n- Stärken: ${c.strength||'-'}\n- Laufende Maßnahmen: ${c.measure||'-'}\n\nAntworte als klar strukturierter Text mit:\n1. Kurzfristige Ziele\n2. Mittelfristige Ziele\n3. Fördermaßnahmen im Unterricht\n4. Materialien/Methoden\n5. Hinweise für Gespräche mit Eltern`) }
 function openImport(id){$('#'+id).classList.add('open')} function toggleImport(id){const el=$('#'+id); el.style.display=el.style.display==='block'?'none':'block'}
-function importDayJson(){
-  const t = $('#importDayText').value.trim();
-  if(!t) return toast('Bitte JSON einfügen');
-
-  try{
-    const arr = JSON.parse(t);
-
-    arr.forEach(e => {
-      let stunde = Number(e.stunde);
-
-      // erlaubt sowohl 0-5 als auch 1-6
-      if (stunde >= 1 && stunde <= 6) stunde = stunde - 1;
-
-      if (Number.isNaN(stunde) || stunde < 0 || stunde > 5) return;
-
-      lessons[`${dateKey(currentDay)}_${stunde}`] = {
-        fach: e.fach || '',
-        thema: e.thema || '',
-        kompetenz: e.kompetenz || '',
-        verknuepfung: e.verknuepfung || '',
-        mindestziel: e.mindestziel || '',
-        diffUnten: e.differenzierung_unten || '',
-        diffOben: e.differenzierung_oben || '',
-        sozialformen: Array.isArray(e.sozialformen) ? e.sozialformen.join(', ') : (e.sozialformen || ''),
-        methoden: e.methoden || [],
-        phasen: e.phasen || [],
-        material: e.material || ''
-      };
-    });
-
-    saveState();
-    closeModal('importDay');
-    renderWeek();
-    renderTag();
-    toast('Tagesplan übernommen ✓');
-  } catch(e){
-    alert('Ungültiges JSON für Tagesplan.');
-  }
-}
-function importWeekJson(){
-  const t = $('#importWeekText').value.trim();
-  if(!t) return toast('Bitte JSON einfügen');
-
-  try{
-    const arr = JSON.parse(t);
-    const mon = getMonday(weekOffset);
-
-    arr.forEach(e => {
-      let tag = e.tag;
-      let stunde = Number(e.stunde);
-
-      // erlaubt sowohl 0-4 als auch Wochentage als Text
-      if (typeof tag === 'string') {
-        tag = DAYS.indexOf(tag);
-      }
-
-      // erlaubt sowohl 0-5 als auch 1-6
-      if (stunde >= 1 && stunde <= 6) stunde = stunde - 1;
-
-      if (Number.isNaN(tag) || tag < 0 || tag > 4) return;
-      if (Number.isNaN(stunde) || stunde < 0 || stunde > 5) return;
-
-      const d = new Date(mon.getTime() + tag * 86400000);
-
-      lessons[`${dateKey(d)}_${stunde}`] = {
-        fach: e.fach || '',
-        thema: e.thema || '',
-        kompetenz: e.kompetenz || '',
-        verknuepfung: e.verknuepfung || '',
-        mindestziel: e.mindestziel || '',
-        diffUnten: e.differenzierung_unten || '',
-        diffOben: e.differenzierung_oben || '',
-        sozialformen: Array.isArray(e.sozialformen) ? e.sozialformen.join(', ') : (e.sozialformen || ''),
-        methoden: e.methoden || [],
-        phasen: e.phasen || [],
-        material: e.material || ''
-      };
-    });
-
-    saveState();
-    closeModal('importWeek');
-    renderWeek();
-    renderTag();
-    toast('Wochenplan übernommen ✓');
-  } catch(e){
-    alert('Ungültiges JSON für Wochenplan.');
-  }
-}
+function importDayJson(){const t=$('#importDayText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>{lessons[`${dateKey(currentDay)}_${e.stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importDay'); renderWeek(); renderTag(); toast('Tagesplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Tagesplan.')}}
+function importWeekJson(){const t=$('#importWeekText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t), mon=getMonday(weekOffset); arr.forEach(e=>{const d=new Date(mon.getTime()+e.tag*86400000); lessons[`${dateKey(d)}_${e.stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importWeek'); renderWeek(); renderTag(); toast('Wochenplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Wochenplan.')}}
+function importMonthJson(){const t=$('#importMonthText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>monthEntries.push({id:Date.now()+Math.random(),fach:e.fach||'',thema:e.thema||'',von:e.von||'',bis:e.bis||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',notizen:e.notizen||''})); saveState(); closeModal('importMonth'); renderMonth(); toast('Monatsplanung übernommen ✓')}catch(e){alert('Ungültiges JSON für Monatsplanung.')}}
 function importYearJson(){const t=$('#importYearText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>yearEntries.push({id:Date.now()+Math.random(),fach:e.fach||'',thema:e.thema||'',von:e.von||'',bis:e.bis||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',notizen:e.notizen||''})); saveState(); closeModal('importYear'); renderYear(); toast('Jahresplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Jahresplan.')}}
 function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffset=0; renderWeek()}
 function changeTag(d){currentDay.setDate(currentDay.getDate()+d); while(isWeekend(currentDay)) currentDay.setDate(currentDay.getDate()+d); selectedSlot=null; renderTag(); saveState()} function goTodayDay(){currentDay=new Date(); currentDay.setHours(0,0,0,0); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}
