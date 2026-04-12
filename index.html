@@ -119,7 +119,91 @@ function deletePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthE
 function openChildModal(id=null){editingChildId=id; const c=id?children.find(x=>x.id==id):null; $('#childModal').classList.add('open'); $('#childTitle').textContent=c?'Kind bearbeiten':'Kind anlegen'; $('#cname').value=c?.name||''; $('#cclass').innerHTML=['1','2','3','4'].map(k=>`<option value="${k}">${k}. Klasse</option>`).join(''); $('#cclass').value=c?.class||$('#klasse').value; $('#cdesc').value=c?.desc||''; $('#cstrength').value=c?.strength||''; $('#cmeasure').value=c?.measure||''; $('#childDelete').style.display=c?'':'none'; $$('.area').forEach(a=>{const on=(c?.areas||[]).includes(a.dataset.area); a.classList.toggle('on',on); a.style.background=on?AREAS[a.dataset.area]:''})}
 function saveChild(){const name=$('#cname').value.trim(); if(!name) return toast('Bitte Name eingeben'); const entry={id:editingChildId||Date.now(),name,class:+$('#cclass').value,areas:$$('.area.on').map(a=>a.dataset.area),desc:$('#cdesc').value,strength:$('#cstrength').value,measure:$('#cmeasure').value}; if(editingChildId){const i=children.findIndex(x=>x.id==editingChildId); if(i>=0) children[i]=entry; else children.push(entry)} else children.push(entry); saveState(); closeModal('childModal'); renderChildren(); toast('Kind gespeichert ✓')}
 function deleteChild(){if(!editingChildId) return; children=children.filter(x=>x.id!=editingChildId); saveState(); closeModal('childModal'); renderChildren(); $('#childDetail').innerHTML='<div class="detail-empty">Kein Kind ausgewählt</div>'; toast('Kind gelöscht')}
-function copyLessonPrompt(){const klasse=$('#klasse').value||'1', fach=$('#lfach').value||'deutsch', thema=$('#lthema').value||'', komp=$('#lkomp').value||'', verk=$('#lverk').value||''; copyText(`Erstelle eine einzelne Unterrichtsstunde für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Fach: ${fach}\n- Thema: ${thema||'passend wählen'}\n- Lehrplanbezug: ${komp||'passend formulieren'}\n- Fächerübergreifend: ${verk||'wenn sinnvoll'}\n- Lehrwerke: ${activeBooks()}\n\nWichtige Anforderungen:\n- Plane die Stunde nach dem AVIVA-Modell.\n- Phasen: Ankommen, Vorwissen aktivieren, Informieren, Verarbeiten, Auswerten\n- Zu jeder AVIVA-Phase muss ein genauer Inhalt enthalten sein, außerdem die passende Sozialform und die Differenzierung in dieser Phase.\n- altersgerecht für Volksschule\n- Differenzierung für stärkere und schwächere Kinder\n- ohne Handy\n- Sozialformen sinnvoll auswählen\n- Formuliere so klar, dass auch Anfängerinnen sofort damit arbeiten können.\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:\n\n{\n  \"fach\": \"deutsch\",\n  \"thema\": \"string\",\n  \"kompetenz\": \"string\",\n  \"verknuepfung\": \"string\",\n  \"mindestziel\": \"string\",\n  \"sozialformen\": [\"Plenum\",\"Partnerarbeit\"],\n  \"methoden\": [\"string\",\"string\"],\n  \"phasen\": [\n    {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},\n    {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},\n    {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},\n    {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},\n    {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}\n  ],\n  \"differenzierung_unten\": \"string\",\n  \"differenzierung_oben\": \"string\",\n  \"material\": \"string\"\n}`)}
+function copyLessonPrompt(){
+  const c = $('#klasse').value || '1';
+  const fach = $('#lfach').value || 'deutsch';
+  const thema = $('#lthema').value || '';
+  const komp = $('#lkomp').value || '';
+  const verk = $('#lverk').value || '';
+
+  copyText(`Erstelle eine einzelne Unterrichtsstunde für eine ${c}. Klasse Volksschule in Österreich.
+
+Rahmen:
+- Fach: ${fach}
+- Thema: ${thema || 'passend wählen'}
+- Lehrplanbezug: ${komp || 'passend formulieren'}
+- Fächerübergreifend: ${verk || 'wenn sinnvoll'}
+- Lehrwerke: ${activeBooks()}
+
+Wichtige Anforderungen:
+- Plane die Stunde nach dem AVIVA-Modell.
+- Die Stunde soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
+- Alle Felder müssen vollständig ausgefüllt werden.
+- Schreibe nicht knapp, sondern konkret und praxisnah.
+- Jede AVIVA-Phase soll als ausformulierter Ablauf beschrieben sein:
+  Was macht die Lehrperson? Was tun die Kinder? Was ist das Ziel der Phase?
+- Sozialformen müssen sinnvoll und vollständig angegeben werden.
+- Methoden müssen konkret und nicht nur allgemein genannt werden.
+- Die Differenzierung soll wirklich umsetzbar sein:
+  einmal für Kinder, die noch Unterstützung brauchen,
+  und einmal für Kinder, die schon weiter sind.
+- Die Verknüpfung zu anderen Fächern soll konkret sein.
+- Material soll möglichst vollständig aufgelistet werden.
+- Altersgerecht für Volksschule, klar strukturiert, ohne Handy.
+${extraPrompt()}
+
+Antworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:
+
+{
+  "fach": "Sachunterricht",
+  "thema": "string",
+  "kompetenz": "string",
+  "verknuepfung": "string",
+  "mindestziel": "string",
+  "sozialformen": ["Plenum", "Partnerarbeit", "Gruppenarbeit", "Einzelarbeit"],
+  "methoden": ["string", "string", "string"],
+  "phasen": [
+    {
+      "name": "Ankommen",
+      "beschreibung": "string",
+      "sozialform": "string",
+      "differenzierung": "string",
+      "min": 5
+    },
+    {
+      "name": "Vorwissen aktivieren",
+      "beschreibung": "string",
+      "sozialform": "string",
+      "differenzierung": "string",
+      "min": 8
+    },
+    {
+      "name": "Informieren",
+      "beschreibung": "string",
+      "sozialform": "string",
+      "differenzierung": "string",
+      "min": 10
+    },
+    {
+      "name": "Verarbeiten",
+      "beschreibung": "string",
+      "sozialform": "string",
+      "differenzierung": "string",
+      "min": 15
+    },
+    {
+      "name": "Auswerten",
+      "beschreibung": "string",
+      "sozialform": "string",
+      "differenzierung": "string",
+      "min": 7
+    }
+  ],
+  "differenzierung_unten": "string",
+  "differenzierung_oben": "string",
+  "material": "string"
+}`);
+}
 function copyDayPrompt(){const klasse=$('#klasse').value||'1'; copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- 6 Unterrichtsstunden\n- Für jede Stunde sollen die AVIVA-Phasen auch inhaltlich beschrieben sein.\n- Lehrwerke: ${activeBooks()}\n- Differenzierung für stärkere und schwächere Kinder\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n- Gen-Alpha-gerecht, ohne Handy\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"stunde\":0,\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"mindestziel\":\"string\",\n    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],\n    \"methoden\":[\"string\",\"string\"],\n    \"phasen\":[\n      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},\n      {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},\n      {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},\n      {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},\n      {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}\n    ],\n    \"differenzierung_unten\":\"string\",\n    \"differenzierung_oben\":\"string\",\n    \"material\":\"string\"\n  }\n]\n\nWichtig: genau 6 Einträge, stunde 0 bis 5.`)}
 function copyWochePrompt(){const klasse=$('#klasse').value||'1', mon=getMonday(weekOffset); copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- 5 Tage: Montag bis Freitag\n- 6 Unterrichtsstunden pro Tag\n- Für jede Stunde sollen die AVIVA-Phasen auch inhaltlich beschrieben sein.\n- Lehrwerke: ${activeBooks()}\n- sinnvolle Fächerverteilung\n- Differenzierung für stärkere und schwächere Kinder\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n- Gen-Alpha-gerecht, ohne Handy\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"tag\":0,\n    \"stunde\":0,\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"mindestziel\":\"string\",\n    \"sozialformen\":[\"Plenum\",\"Partnerarbeit\"],\n    \"methoden\":[\"string\",\"string\"],\n    \"phasen\":[\n      {\"name\":\"Ankommen\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":5},\n      {\"name\":\"Vorwissen aktivieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":8},\n      {\"name\":\"Informieren\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":10},\n      {\"name\":\"Verarbeiten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":15},\n      {\"name\":\"Auswerten\",\"beschreibung\":\"string\",\"sozialform\":\"string\",\"differenzierung\":\"string\",\"min\":7}\n    ],\n    \"differenzierung_unten\":\"string\",\n    \"differenzierung_oben\":\"string\",\n    \"material\":\"string\"\n  }\n]\n\nWichtig: genau 30 Einträge, tag 0 bis 4, stunde 0 bis 5.`)}
 function copyMonthPrompt(){const klasse=$('#klasse').value||'1', m=currentMonthObj(); copyText(`Erstelle eine Monatsplanung für ${MONTHS[m.month]} ${m.year} für eine ${klasse}. Klasse Volksschule in Österreich.\n\nRahmen:\n- Lehrwerke: ${activeBooks()}\n- mehrere sinnvolle Einheiten im Monat\n- jahreszeitliche Themen berücksichtigen\n- fächerübergreifende Verknüpfungen müssen sichtbar sein\n${extraPrompt()}\n\nAntworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:\n\n[\n  {\n    \"fach\":\"deutsch\",\n    \"thema\":\"string\",\n    \"von\":\"YYYY-MM-DD\",\n    \"bis\":\"YYYY-MM-DD\",\n    \"kompetenz\":\"string\",\n    \"verknuepfung\":\"string\",\n    \"notizen\":\"string\"\n  }\n]\n\nWichtig: alle Einträge müssen im Monat ${MONTHS[m.month]} ${m.year} liegen.`)}
