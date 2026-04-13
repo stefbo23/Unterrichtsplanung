@@ -121,7 +121,7 @@ function saveChild(){const name=$('#cname').value.trim(); if(!name) return toast
 function deleteChild(){if(!editingChildId) return; children=children.filter(x=>x.id!=editingChildId); saveState(); closeModal('childModal'); renderChildren(); $('#childDetail').innerHTML='<div class="detail-empty">Kein Kind ausgewählt</div>'; toast('Kind gelöscht')}
 function copyLessonPrompt(){
   const c = $('#klasse').value || '1';
-  const fach = $('#lfach').value || 'deutsch';
+  const fach = $('#lfach').value || '';
   const thema = $('#lthema').value || '';
   const komp = $('#lkomp').value || '';
   const verk = $('#lverk').value || '';
@@ -160,7 +160,7 @@ Antworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:
   "kompetenz": "string",
   "verknuepfung": "string",
   "mindestziel": "string",
-  "sozialformen": ["Plenum", "Partnerarbeit", "Gruppenarbeit", "Einzelarbeit"],
+  "sozialformen": ["", "", "", ""],
   "methoden": ["string", "string", "string"],
   "phasen": [
     {
