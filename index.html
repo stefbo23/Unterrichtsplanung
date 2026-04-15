@@ -86,11 +86,171 @@ function phaseColor(name,i=0){const n=(name||'').toLowerCase(); if(n.includes('a
 function copyText(text){navigator.clipboard.writeText(text).then(()=>toast('Prompt kopiert ✓')).catch(()=>alert('Kopieren nicht möglich. Bitte Text manuell kopieren.'))}
 function activeBooks(){return Object.entries(selectedBooks).filter(([,v])=>v).map(([k])=>k).join(', ')||'keine speziellen Lehrwerke ausgewählt'}
 function extraPrompt(){const parts=[]; const focus=$('#focus').value.trim(); if(focus) parts.push(`Schwerpunktthemen: ${focus}`); if($('#optMethods').checked) parts.push('Methoden sollen konkret und praktikabel sein.'); if($('#optPhases').checked) parts.push('Phasierung soll klar sichtbar sein.'); if($('#optGen').checked) parts.push('Gen Alpha berücksichtigen: aktiv, kurz, anschaulich, ohne Handy.'); return parts.join('\n')}
-function saveState(){localStorage.setItem('vs_all',JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value,currentDay:dateKey(currentDay)}))}
-function loadState(){try{const d=JSON.parse(localStorage.getItem('vs_all')||'{}'); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; if(d.focus!==undefined) $('#focus').value=d.focus; if(d.optMethods!==undefined) $('#optMethods').checked=d.optMethods; if(d.optPhases!==undefined) $('#optPhases').checked=d.optPhases; if(d.optGen!==undefined) $('#optGen').checked=d.optGen; if(d.klasse) $('#klasse').value=d.klasse; if(d.currentDay) currentDay=new Date(d.currentDay+'T12:00:00')}catch(e){}}
+function currentContextKey(){
+  const sy = $('#schuljahr').value || schoolYear;
+  const kl = $('#klasse').value || '1';
+  return `${sy}__${kl}`;
+}
+function saveState(){
+  const key = currentContextKey();
+
+  let store = {};
+  try{
+    store = JSON.parse(localStorage.getItem('vs_all') || '{}');
+  } catch(e){
+    store = {};
+  }
+
+  if(!store.contexts) store.contexts = {};
+
+  store.contexts[key] = {
+    lessons,
+    monthEntries,
+    yearEntries,
+    children,
+    selectedBooks,
+    hoursCfg,
+    monthPos,
+    focus: $('#focus').value,
+    optMethods: $('#optMethods').checked,
+    optPhases: $('#optPhases').checked,
+    optGen: $('#optGen').checked,
+    currentDay: dateKey(currentDay)
+  };
+
+  store.lastSchoolYear = $('#schuljahr').value;
+  store.lastKlasse = $('#klasse').value;
+
+  localStorage.setItem('vs_all', JSON.stringify(store));
+}
+function loadState(){
+  let store = {};
+  try{
+    store = JSON.parse(localStorage.getItem('vs_all') || '{}');
+  } catch(e){
+    store = {};
+  }
+
+  // Migration vom alten Speicher
+  if(!store.contexts){
+    const fallbackKey = `${schoolYear}__${$('#klasse').value || '1'}`;
+    store.contexts = {};
+    store.contexts[fallbackKey] = {
+      lessons: store.lessons || {},
+      monthEntries: store.monthEntries || [],
+      yearEntries: store.yearEntries || [],
+      children: store.children || [],
+      selectedBooks: store.selectedBooks || selectedBooks,
+      hoursCfg: store.hoursCfg || hoursCfg,
+      monthPos: store.monthPos || 0,
+      focus: store.focus || '',
+      optMethods: store.optMethods !== false,
+      optPhases: store.optPhases !== false,
+      optGen: store.optGen !== false,
+      currentDay: store.currentDay || dateKey(new Date())
+    };
+  }
+
+  const key = currentContextKey();
+  const d = store.contexts[key] || {};
+
+  lessons = d.lessons || {};
+  monthEntries = d.monthEntries || [];
+  yearEntries = d.yearEntries || [];
+  children = d.children || [];
+  selectedBooks = d.selectedBooks || {'Flex und Flora':true,'Flex und Flo':true,'Sally':true};
+  hoursCfg = d.hoursCfg || {deutsch:5,mathe:5,sachunterricht:3,englisch:2,musik:1,be:1,werken:1,sport:2,religion:2};
+  monthPos = d.monthPos || 0;
+
+  $('#focus').value = d.focus || '';
+  $('#optMethods').checked = d.optMethods !== false;
+  $('#optPhases').checked = d.optPhases !== false;
+  $('#optGen').checked = d.optGen !== false;
+
+  if(d.currentDay){
+    currentDay = new Date(d.currentDay + 'T12:00:00');
+  } else {
+    currentDay = new Date();
+  }
+}
+function switchContext(){
+  schoolYear = $('#schuljahr').value;
+  loadState();
+  renderAll();
+  renderSidebar();
+}
 function exportData(){const blob=new Blob([JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vs-planung-${dateKey(new Date())}.json`; a.click(); URL.revokeObjectURL(url); toast('Export erstellt ✓')}
 function importData(evt){const file=evt.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=e=>{try{const d=JSON.parse(e.target.result); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; $('#focus').value=d.focus||''; $('#optMethods').checked=d.optMethods!==false; $('#optPhases').checked=d.optPhases!==false; $('#optGen').checked=d.optGen!==false; if(d.klasse) $('#klasse').value=d.klasse; $('#schuljahr').value=schoolYear; saveState(); renderAll(); toast('Import erfolgreich ✓')}catch(err){alert('Import fehlgeschlagen: ungültige Datei')}}; r.readAsText(file)}
-function init(){['1','2','3','4'].forEach(k=>$('#klasse').insertAdjacentHTML('beforeend',`<option value="${k}">${k}. Klasse</option>`)); ['2024/25','2025/26','2026/27'].forEach(y=>$('#schuljahr').insertAdjacentHTML('beforeend',`<option value="${y}">${y}</option>`)); $('#schuljahr').value=schoolYear; const tabs=[['woche','Wochenplan'],['tag','Tagesplan'],['monat','Monatsplanung'],['jahr','Jahresplan'],['foerderung','🌱 Förderung'],['einrichtung','⚙ Einrichtung']]; $('#tabs').innerHTML=tabs.map((t,i)=>`<div class="tab ${i===0?'on':''}" data-view="${t[0]}">${t[1]}</div>`).join(''); $('#tabs').addEventListener('click',e=>{const t=e.target.closest('.tab'); if(!t) return; $$('.tab').forEach(x=>x.classList.remove('on')); t.classList.add('on'); $$('.view').forEach(v=>v.classList.remove('on')); $('#view-'+t.dataset.view).classList.add('on'); renderView(t.dataset.view)}); $('#dayPicker').addEventListener('change',()=>{const v=$('#dayPicker').value; if(v){currentDay=new Date(v+'T12:00:00'); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}}); $('#importFile').addEventListener('change',importData); fillSubjectSelects(); buildMethods(); buildAreas(); buildBookSettings(); buildHourSettings(); loadState(); $('#schuljahr').value=schoolYear; renderAll()}
+function init(){
+  ['1','2','3','4'].forEach(k=>{
+    $('#klasse').insertAdjacentHTML('beforeend', `<option value="${k}">${k}. Klasse</option>`);
+  });
+
+  for(let y=2024; y<=2034; y++){
+    const label = `${y}/${String(y+1).slice(2)}`;
+    $('#schuljahr').insertAdjacentHTML('beforeend', `<option value="${label}">${label}</option>`);
+  }
+
+  $('#schuljahr').value = schoolYear;
+
+  const tabs = [
+    ['woche','Wochenplan'],
+    ['tag','Tagesplan'],
+    ['monat','Monatsplanung'],
+    ['jahr','Jahresplan'],
+    ['foerderung','🌱 Förderung'],
+    ['einrichtung','⚙ Einrichtung']
+  ];
+
+  $('#tabs').innerHTML = tabs.map((t,i)=>`
+    <div class="tab ${i===0?'on':''}" data-view="${t[0]}">${t[1]}</div>
+  `).join('');
+
+  $('#tabs').addEventListener('click', e=>{
+    const t=e.target.closest('.tab');
+    if(!t) return;
+    $$('.tab').forEach(x=>x.classList.remove('on'));
+    t.classList.add('on');
+    $$('.view').forEach(v=>v.classList.remove('on'));
+    $('#view-'+t.dataset.view).classList.add('on');
+    renderView(t.dataset.view);
+  });
+
+  $('#klasse').addEventListener('change', ()=>{
+    switchContext();
+    saveState();
+  });
+
+  $('#schuljahr').addEventListener('change', ()=>{
+    schoolYear = $('#schuljahr').value;
+    switchContext();
+    saveState();
+  });
+
+  $('#dayPicker').addEventListener('change', ()=>{
+    const v = $('#dayPicker').value;
+    if(v){
+      currentDay = new Date(v+'T12:00:00');
+      if(isWeekend(currentDay)) changeTag(1);
+      selectedSlot = null;
+      renderTag();
+      saveState();
+    }
+  });
+
+  $('#importFile').addEventListener('change', importData);
+
+  fillSubjectSelects();
+  buildMethods();
+  buildAreas();
+  buildBookSettings();
+  buildHourSettings();
+
+  loadState();
+
+  $('#schuljahr').value = schoolYear;
+  renderAll();
+}
 function fillSubjectSelects(){const html='<option value="">– wählen –</option>'+Object.entries(SUBJECTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(''); ['lfach','pfach'].forEach(id=>$("#"+id).innerHTML=html)}
 function buildMethods(){$('#methodGrid').innerHTML=METHODS.map(m=>`<div class="method" data-method="${m}">${m}</div>`).join(''); $('#methodGrid').addEventListener('click',e=>{const c=e.target.closest('.method'); if(!c) return; c.classList.toggle('on'); const m=c.dataset.method; if(c.classList.contains('on')){if(!selectedMethods.includes(m)) selectedMethods.push(m)}else selectedMethods=selectedMethods.filter(x=>x!==m)})}
 function buildAreas(){$('#areas').innerHTML=Object.keys(AREAS).map(a=>`<div class="area" data-area="${a}">${a}</div>`).join(''); $('#areas').addEventListener('click',e=>{const c=e.target.closest('.area'); if(!c) return; c.classList.toggle('on'); c.style.background=c.classList.contains('on')?AREAS[c.dataset.area]:''})}
