@@ -85,7 +85,15 @@ function monthBreaks(year,month,sy){return (BREAKS[sy]||[]).filter(f=>{const s=n
 function phaseColor(name,i=0){const n=(name||'').toLowerCase(); if(n.includes('ankommen')) return '#888780'; if(n.includes('vorwissen')) return '#D4A843'; if(n.includes('inform')) return '#3A7BA7'; if(n.includes('verarbeit')) return '#4A7C6F'; if(n.includes('auswert')||n.includes('reflex')) return '#C8523A'; return ['#4A7C6F','#C8523A','#D4A843','#3A7BA7','#888780'][i%5]}
 function copyText(text){navigator.clipboard.writeText(text).then(()=>toast('Prompt kopiert ✓')).catch(()=>alert('Kopieren nicht möglich. Bitte Text manuell kopieren.'))}
 function activeBooks(){return Object.entries(selectedBooks).filter(([,v])=>v).map(([k])=>k).join(', ')||'keine speziellen Lehrwerke ausgewählt'}
-function extraPrompt(){const parts=[]; const focus=$('#focus').value.trim(); if(focus) parts.push(`Schwerpunktthemen: ${focus}`); if($('#optMethods').checked) parts.push('Methoden sollen konkret und praktikabel sein.'); if($('#optPhases').checked) parts.push('Phasierung soll klar sichtbar sein.'); if($('#optGen').checked) parts.push('Gen Alpha berücksichtigen: aktiv, kurz, anschaulich, ohne Handy.'); return parts.join('\n')}
+function extraPrompt(){
+  const parts=[];
+  const focus=$('#focus').value.trim();
+  if(focus) parts.push(`Schwerpunktthemen: ${focus}`);
+  if($('#optMethods').checked) parts.push('Methoden sollen konkret und praktikabel sein.');
+  if($('#optPhases').checked) parts.push('Phasierung soll klar sichtbar sein.');
+  if($('#optGen').checked) parts.push('Gen Alpha berücksichtigen: aktiv, kurz, anschaulich, ohne Handy.');
+  return parts.join('\n');
+}
 function currentContextKey(){
   const sy = $('#schuljahr').value || schoolYear;
   const kl = $('#klasse').value || '1';
