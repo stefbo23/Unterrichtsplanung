@@ -118,6 +118,87 @@ async function testSignIn() {
   console.log('SignIn data:', data);
   console.log('SignIn error:', error);
 }
+  async function signUpWithForm() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+
+  if (!email || !password) {
+    alert('Bitte E-Mail und Passwort eingeben.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: 'https://stefbo23.github.io/Unterrichtsplanung/'
+    }
+  });
+
+  console.log('Form SignUp data:', data);
+  console.log('Form SignUp error:', error);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  alert('Registrierung abgeschickt. Bitte E-Mail prüfen.');
+}
+  async function signInWithForm() {
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+
+  if (!email || !password) {
+    alert('Bitte E-Mail und Passwort eingeben.');
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  console.log('Form SignIn data:', data);
+  console.log('Form SignIn error:', error);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  updateAuthStatus();
+}
+  async function signOutUser() {
+  const { error } = await supabaseClient.auth.signOut();
+
+  console.log('SignOut error:', error);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  updateAuthStatus();
+}
+  async function updateAuthStatus() {
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  console.log('Auth status user:', data);
+  console.log('Auth status error:', error);
+
+  const el = document.getElementById('authStatus');
+  if (!el) return;
+
+  if (data && data.user) {
+    el.textContent = 'eingeloggt: ' + data.user.email;
+  } else {
+    el.textContent = 'nicht eingeloggt';
+  }
+}
+  supabaseClient.auth.onAuthStateChange(() => {
+  updateAuthStatus();
+});
 const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
 const TIMES=['7:55–8:40','8:45–9:30','9:45–10:30','10:35–11:20','11:35–12:20','12:25–13:10'];
 const PAUSES=[false,true,false,true,false];
