@@ -84,10 +84,13 @@ async function testSupabaseConnection() {
 
   if (!email || !password) return;
 
-  const { data, error } = await supabaseClient.auth.signUp({
-    email,
-    password
-  });
+const { data, error } = await supabaseClient.auth.signUp({
+  email,
+  password,
+  options: {
+    emailRedirectTo: 'https://stefbo23.github.io/Unterrichtsplanung/'
+  }
+});
 
   console.log('SignUp data:', data);
   console.log('SignUp error:', error);
