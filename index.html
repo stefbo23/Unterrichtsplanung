@@ -60,7 +60,12 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 <div class="modal-wrap" id="importYear"><div class="modal"><div class="modal-title">Jahresplan JSON einfügen</div><div class="field"><textarea id="importYearText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importYear')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importYearJson()">Übernehmen</button></div></div></div>
 <div class="modal-wrap" id="importChild"><div class="modal"><div class="modal-title">Förderplan JSON einfügen</div><div class="modal-sub">JSON aus Claude hier einfügen</div><div class="field"><textarea id="importChildText" style="min-height:220px"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importChild')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importChildJson()">Übernehmen</button></div></div></div>
 <div class="toast" id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
 <script>
+const SUPABASE_URL = 'https://rdholgjkcewitjaalsdb.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_9cH-2Rsp5UvDPgAlf4Pb8g_t9M8IjOm';
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+console.log('Supabase verbunden:', supabaseClient);
 const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
 const TIMES=['7:55–8:40','8:45–9:30','9:45–10:30','10:35–11:20','11:35–12:20','12:25–13:10'];
 const PAUSES=[false,true,false,true,false];
