@@ -446,6 +446,44 @@ function showChild(id){
 function openLessonModal(key,ti,si,d){editingLessonKey=key; const L=lessons[key]||{}; $('#lessonModal').classList.add('open'); $('#lessonModalTitle').textContent=`${si+1}. Stunde`; $('#lessonModalSub').textContent=`${d?fmtDate(d):''} · ${TIMES[si]||''}`; $('#lfach').value=L.fach||''; $('#lthema').value=L.thema||''; $('#lkomp').value=L.kompetenz||''; $('#lverk').value=L.verknuepfung||''; $('#lmgoal').value=L.mindestziel||''; $('#ldown').value=L.diffUnten||''; $('#lup').value=L.diffOben||''; $('#lsocial').value=L.sozialformen||''; $('#lmat').value=L.material||''; $('#lessonDelete').style.display=L.fach?'':'none'; selectedMethods=Array.isArray(L.methoden)?[...L.methoden]:[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=Array.isArray(L.phasen)&&L.phasen.length?JSON.parse(JSON.stringify(L.phasen)):[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList(); $('#lessonImport').style.display='none'; $('#lessonImportText').value=''}
 function renderPhaseList(){const box=$('#phaseList'); box.innerHTML=''; phaseData.forEach((p,i)=>{const row=document.createElement('div'); row.className='phase-row'; row.innerHTML=`<div class="phase-head"><div class="phase-title" style="background:${phaseColor(p.name,i)}">${p.name}</div><input class="mins" type="number" value="${p.min||''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value" placeholder="Min"></div><div class="phase-grid"><textarea oninput="phaseData[${i}].beschreibung=this.value" placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?">${p.beschreibung||''}</textarea><input value="${p.sozialform||''}" oninput="phaseData[${i}].sozialform=this.value" placeholder="Sozialform frei wählen"><textarea oninput="phaseData[${i}].differenzierung=this.value" placeholder="Differenzierung in dieser Phase">${p.differenzierung||''}</textarea></div>`; box.appendChild(row)})}
 function addPhase(){resetAviva()} function resetAviva(){phaseData=[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList()}
+async function saveLessonToSupabase(lessonKey, lessonData) {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    toast('Bitte zuerst einloggen');
+    return false;
+  }
+
+  const payload = {
+    user_id: userData.user.id,
+    school_year: $('#schuljahr').value,
+    klasse: $('#klasse').value,
+    lesson_key: lessonKey,
+    fach: lessonData.fach || '',
+    thema: lessonData.thema || '',
+    kompetenz: lessonData.kompetenz || '',
+    verknuepfung: lessonData.verknuepfung || '',
+    mindestziel: lessonData.mindestziel || '',
+    diff_unten: lessonData.diffUnten || '',
+    diff_oben: lessonData.diffOben || '',
+    sozialformen: lessonData.sozialformen || '',
+    methoden: lessonData.methoden || [],
+    phasen: lessonData.phasen || [],
+    material: lessonData.material || ''
+  };
+
+  const { error } = await supabaseClient
+    .from('lessons')
+    .upsert(payload, { onConflict: 'user_id,school_year,klasse,lesson_key' });
+
+  if (error) {
+    console.log('saveLessonToSupabase error:', error);
+    toast('Speichern in Supabase fehlgeschlagen');
+    return false;
+  }
+
+  return true;
+}
 function saveLesson(){if(!editingLessonKey){toast('Keine Stunde ausgewählt'); return} const fach=$('#lfach').value; if(!fach){toast('Bitte Fach wählen'); return} lessons[editingLessonKey]={fach:fach,thema:$('#lthema').value||'',kompetenz:$('#lkomp').value||'',verknuepfung:$('#lverk').value||'',mindestziel:$('#lmgoal').value||'',diffUnten:$('#ldown').value||'',diffOben:$('#lup').value||'',sozialformen:$('#lsocial').value||'',methoden:[...selectedMethods],phasen:JSON.parse(JSON.stringify(phaseData)),material:$('#lmat').value||''}; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gespeichert ✓')}
 function deleteLesson(){if(!editingLessonKey) return; delete lessons[editingLessonKey]; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gelöscht')}
 function importLessonJson(){const text=$('#lessonImportText').value.trim(); if(!text) return toast('Bitte JSON einfügen'); try{const d=JSON.parse(text); $('#lfach').value=d.fach||''; $('#lthema').value=d.thema||''; $('#lkomp').value=d.kompetenz||''; $('#lverk').value=d.verknuepfung||''; $('#lmgoal').value=d.mindestziel||''; $('#ldown').value=d.differenzierung_unten||''; $('#lup').value=d.differenzierung_oben||''; $('#lsocial').value=Array.isArray(d.sozialformen)?d.sozialformen.join(', '):(d.sozialformen||''); $('#lmat').value=d.material||''; selectedMethods=Array.isArray(d.methoden)?[...d.methoden]:[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=Array.isArray(d.phasen)&&d.phasen.length?JSON.parse(JSON.stringify(d.phasen)):[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList(); $('#lessonImport').style.display='none'; toast('Stunden-JSON übernommen ✓')}catch(e){alert('Ungültiges JSON für Stunde.')}}
