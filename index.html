@@ -39,6 +39,8 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
     <select class="sel" id="schuljahr"></select>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportData()">💾 Export</button>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="document.getElementById('importFile').click()">📂 Import</button>
+    <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="testSignUp()">Test Registrierung</button>
+    <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="testSignIn()">Test Login</button>
     <input type="file" id="importFile" accept=".json" style="display:none" />
   </div>
 </header>
@@ -76,6 +78,35 @@ async function testSupabaseConnection() {
   console.log('Supabase Test error:', error);
 }
   testSupabaseConnection();
+  async function testSignUp() {
+  const email = prompt('E-Mail für Test-Registrierung:');
+  const password = prompt('Passwort mindestens 6 Zeichen:');
+
+  if (!email || !password) return;
+
+  const { data, error } = await supabaseClient.auth.signUp({
+    email,
+    password
+  });
+
+  console.log('SignUp data:', data);
+  console.log('SignUp error:', error);
+}
+
+async function testSignIn() {
+  const email = prompt('E-Mail für Login:');
+  const password = prompt('Passwort:');
+
+  if (!email || !password) return;
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  console.log('SignIn data:', data);
+  console.log('SignIn error:', error);
+}
 const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
 const TIMES=['7:55–8:40','8:45–9:30','9:45–10:30','10:35–11:20','11:35–12:20','12:25–13:10'];
 const PAUSES=[false,true,false,true,false];
