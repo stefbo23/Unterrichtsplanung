@@ -179,6 +179,9 @@ async function testSignIn() {
   }
 
   updateAuthStatus();
+    lessons = {};
+renderWeek();
+renderTag();
 }
   async function updateAuthStatus() {
   const { data, error } = await supabaseClient.auth.getUser();
