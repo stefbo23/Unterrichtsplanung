@@ -66,6 +66,16 @@ const SUPABASE_URL = 'https://rdholgjkcewitjaalsdb.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_9cH-2Rsp5UvDPgAlf4Pb8g_t9M8IjOm';
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 console.log('Supabase verbunden:', supabaseClient);
+async function testSupabaseConnection() {
+  const { data, error } = await supabaseClient
+    .from('lessons')
+    .select('*')
+    .limit(1);
+
+  console.log('Supabase Test data:', data);
+  console.log('Supabase Test error:', error);
+}
+  testSupabaseConnection();
 const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
 const TIMES=['7:55–8:40','8:45–9:30','9:45–10:30','10:35–11:20','11:35–12:20','12:25–13:10'];
 const PAUSES=[false,true,false,true,false];
