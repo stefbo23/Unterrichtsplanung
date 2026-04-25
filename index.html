@@ -166,6 +166,7 @@ async function testSignIn() {
   }
 
   updateAuthStatus();
+  loadLessonsFromSupabase();
 }
   async function signOutUser() {
   const { error } = await supabaseClient.auth.signOut();
@@ -326,6 +327,47 @@ function switchContext(){
 }
 function exportData(){const blob=new Blob([JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vs-planung-${dateKey(new Date())}.json`; a.click(); URL.revokeObjectURL(url); toast('Export erstellt ✓')}
 function importData(evt){const file=evt.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=e=>{try{const d=JSON.parse(e.target.result); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; $('#focus').value=d.focus||''; $('#optMethods').checked=d.optMethods!==false; $('#optPhases').checked=d.optPhases!==false; $('#optGen').checked=d.optGen!==false; if(d.klasse) $('#klasse').value=d.klasse; $('#schuljahr').value=schoolYear; saveState(); renderAll(); toast('Import erfolgreich ✓')}catch(err){alert('Import fehlgeschlagen: ungültige Datei')}}; r.readAsText(file)}
+async function loadLessonsFromSupabase() {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('lessons')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .eq('school_year', $('#schuljahr').value)
+    .eq('klasse', $('#klasse').value);
+
+  if (error) {
+    console.log('loadLessonsFromSupabase error:', error);
+    toast('Laden aus Supabase fehlgeschlagen');
+    return;
+  }
+
+  lessons = {};
+
+  data.forEach(row => {
+    lessons[row.lesson_key] = {
+      fach: row.fach || '',
+      thema: row.thema || '',
+      kompetenz: row.kompetenz || '',
+      verknuepfung: row.verknuepfung || '',
+      mindestziel: row.mindestziel || '',
+      diffUnten: row.diff_unten || '',
+      diffOben: row.diff_oben || '',
+      sozialformen: row.sozialformen || '',
+      methoden: row.methoden || [],
+      phasen: row.phasen || [],
+      material: row.material || ''
+    };
+  });
+
+  renderWeek();
+  renderTag();
+}
 function init(){
   ['1','2','3','4'].forEach(k=>{
     $('#klasse').insertAdjacentHTML('beforeend', `<option value="${k}">${k}. Klasse</option>`);
@@ -396,6 +438,7 @@ function init(){
   $('#schuljahr').value = schoolYear;
   renderAll();
   updateAuthStatus();
+  loadLessonsFromSupabase();
 }
 function fillSubjectSelects(){const html='<option value="">– wählen –</option>'+Object.entries(SUBJECTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(''); ['lfach','pfach'].forEach(id=>$("#"+id).innerHTML=html)}
 function buildMethods(){$('#methodGrid').innerHTML=METHODS.map(m=>`<div class="method" data-method="${m}">${m}</div>`).join(''); $('#methodGrid').addEventListener('click',e=>{const c=e.target.closest('.method'); if(!c) return; c.classList.toggle('on'); const m=c.dataset.method; if(c.classList.contains('on')){if(!selectedMethods.includes(m)) selectedMethods.push(m)}else selectedMethods=selectedMethods.filter(x=>x!==m)})}
