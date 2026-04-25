@@ -41,6 +41,14 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="document.getElementById('importFile').click()">📂 Import</button>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="testSignUp()">Test Registrierung</button>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="testSignIn()">Test Login</button>
+    <input class="sel" id="authEmail" type="email" placeholder="E-Mail" style="min-width:180px" />
+<input class="sel" id="authPassword" type="password" placeholder="Passwort" style="min-width:140px" />
+
+<button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="signUpWithForm()">Registrieren</button>
+<button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="signInWithForm()">Login</button>
+<button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="signOutUser()">Logout</button>
+
+<span id="authStatus" style="font-size:.75rem;color:#fff;opacity:.9">nicht eingeloggt</span>
     <input type="file" id="importFile" accept=".json" style="display:none" />
   </div>
 </header>
