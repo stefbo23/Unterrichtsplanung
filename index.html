@@ -397,6 +397,7 @@ function init(){
 
   $('#schuljahr').value = schoolYear;
   renderAll();
+  updateAuthStatus();
 }
 function fillSubjectSelects(){const html='<option value="">– wählen –</option>'+Object.entries(SUBJECTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(''); ['lfach','pfach'].forEach(id=>$("#"+id).innerHTML=html)}
 function buildMethods(){$('#methodGrid').innerHTML=METHODS.map(m=>`<div class="method" data-method="${m}">${m}</div>`).join(''); $('#methodGrid').addEventListener('click',e=>{const c=e.target.closest('.method'); if(!c) return; c.classList.toggle('on'); const m=c.dataset.method; if(c.classList.contains('on')){if(!selectedMethods.includes(m)) selectedMethods.push(m)}else selectedMethods=selectedMethods.filter(x=>x!==m)})}
