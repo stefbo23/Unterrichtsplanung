@@ -58,6 +58,7 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 <div class="modal-wrap" id="importWeek"><div class="modal"><div class="modal-title">Wochenplan JSON einfügen</div><div class="field"><textarea id="importWeekText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importWeek')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importWeekJson()">Übernehmen</button></div></div></div>
 <div class="modal-wrap" id="importMonth"><div class="modal"><div class="modal-title">Monatsplanung JSON einfügen</div><div class="field"><textarea id="importMonthText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importMonth')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importMonthJson()">Übernehmen</button></div></div></div>
 <div class="modal-wrap" id="importYear"><div class="modal"><div class="modal-title">Jahresplan JSON einfügen</div><div class="field"><textarea id="importYearText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importYear')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importYearJson()">Übernehmen</button></div></div></div>
+<div class="modal-wrap" id="importChild"><div class="modal"><div class="modal-title">Förderplan JSON einfügen</div><div class="modal-sub">JSON aus Claude hier einfügen</div><div class="field"><textarea id="importChildText" style="min-height:220px"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importChild')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importChildJson()">Übernehmen</button></div></div></div>
 <div class="toast" id="toast"></div>
 <script>
 const DAYS=['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
@@ -274,7 +275,34 @@ function renderDayDetail(key,s){const L=lessons[key]; const box=$('#dayDetail');
 function renderMonth(){const cur=currentMonthObj(); $('#monthLabel').textContent=`${MONTHS[cur.month]} ${cur.year}`; const list=$('#monthList'); list.innerHTML=''; schoolMonths(schoolYear).forEach((m,idx)=>{const count=monthEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===m.year&&new Date(e.von).getMonth()===m.month).length; const item=document.createElement('div'); item.className='month-item'+(idx===monthPos?' on':''); item.innerHTML=`<div style="font-weight:700">${MONTHS[m.month]} ${m.year}</div><div style="font-size:.72rem;color:var(--muted)">${count} Einträge</div>`; item.onclick=()=>{monthPos=idx; saveState(); renderMonth()}; list.appendChild(item)}); const pane=$('#monthPane'); const breaks=monthBreaks(cur.year,cur.month,schoolYear); const entries=monthEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===cur.year&&new Date(e.von).getMonth()===cur.month); pane.innerHTML=`<div class="detail-title">${MONTHS[cur.month]} ${cur.year}</div><div class="detail-sub">Monatsplanung</div>`; breaks.forEach(b=>pane.insertAdjacentHTML('beforeend',`<div class="break">🏖 ${b.name}</div>`)); if(!entries.length){pane.insertAdjacentHTML('beforeend','<div class="detail-empty" style="min-height:160px">Keine Monatseinträge vorhanden</div>')} else {entries.forEach(e=>{const el=document.createElement('div'); el.className='entry'; el.style.borderLeftColor=SCOL[e.fach]||'var(--gray)'; el.innerHTML=`<div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div><div class="entry-t">${e.thema||''}</div>${e.verknuepfung?`<div class="entry-m">🔗 ${e.verknuepfung}</div>`:''}`; el.onclick=()=>openPlanModal('month',e.id); pane.appendChild(el)})}}
 function renderYear(){ $('#yearLabel').textContent=`Schuljahr ${schoolYear}`; const grid=$('#yearGrid'); grid.innerHTML=''; schoolMonths(schoolYear).forEach(m=>{const card=document.createElement('div'); card.className='year-card'; const breaks=monthBreaks(m.year,m.month,schoolYear); const entries=yearEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===m.year&&new Date(e.von).getMonth()===m.month); card.innerHTML=`<div class="year-head"><div>${MONTHS[m.month]} ${m.year}</div><div>${entries.length} Einträge</div></div>`; const body=document.createElement('div'); body.className='year-body'; breaks.forEach(b=>body.insertAdjacentHTML('beforeend',`<div class="break">🏖 ${b.name}</div>`)); entries.forEach(e=>{const el=document.createElement('div'); el.className='entry'; el.style.borderLeftColor=SCOL[e.fach]||'var(--gray)'; el.innerHTML=`<div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div><div class="entry-t">${e.thema||''}</div>${e.verknuepfung?`<div class="entry-m">🔗 ${e.verknuepfung}</div>`:''}`; el.onclick=()=>openPlanModal('year',e.id,m.year,m.month); body.appendChild(el)}); const add=document.createElement('button'); add.className='add'; add.textContent='+ Eintrag'; add.onclick=()=>openPlanModal('year',null,m.year,m.month); body.appendChild(add); card.appendChild(body); grid.appendChild(card)})}
 function renderChildren(){const box=$('#kids'); box.innerHTML=''; children.forEach(c=>{const initials=(c.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); const tags=(c.areas||[]).map(a=>`<span class="tagpill" style="background:${AREAS[a]||'#888'}">${a}</span>`).join(''); const el=document.createElement('div'); el.className='kid'; el.innerHTML=`<div class="avatar">${initials}</div><div><div style="font-weight:700">${c.name}</div><div style="margin-top:3px">${tags}</div></div>`; el.onclick=()=>showChild(c.id); box.appendChild(el)}); if(!children.length) $('#childDetail').innerHTML='<div class="detail-empty">Kind auswählen</div>'}
-function showChild(id){$$('.kid').forEach(x=>x.classList.remove('on')); const c=children.find(k=>k.id===id); if(!c) return; $$('.kid').forEach(k=>{if(k.textContent.includes(c.name)) k.classList.add('on')}); const tags=(c.areas||[]).map(a=>`<span class="tagpill" style="background:${AREAS[a]||'#888'}">${a}</span>`).join(''); $('#childDetail').innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px"><div><div class="detail-title">${c.name}</div><div class="detail-sub">${c.class}. Klasse</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="copyChildPrompt('${id}')">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openChildModal('${id}')">✏ Bearbeiten</button></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${tags}</div>${c.desc?`<div class="sect"><div class="sect-label">Beobachtungen</div><div class="sect-val">${c.desc}</div></div>`:''}${c.strength?`<div class="sect"><div class="sect-label">Stärken</div><div class="sect-val">${c.strength}</div></div>`:''}${c.measure?`<div class="sect"><div class="sect-label">Laufende Maßnahmen</div><div class="sect-val">${c.measure}</div></div>`:''}`}
+function showChild(id){
+  $$('.kid').forEach(x=>x.classList.remove('on'));
+  const c=children.find(k=>String(k.id)===String(id));
+  if(!c) return;
+  $$('.kid').forEach(k=>{if(k.textContent.includes(c.name)) k.classList.add('on')});
+  const tags=(c.areas||[]).map(a=>'<span class="tagpill" style="background:'+(AREAS[a]||'#888')+'">'+a+'</span>').join('');
+  document.getElementById('importChild').dataset.childId=id;
+  let html='<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">';
+  html+='<div><div class="detail-title">'+c.name+'</div><div class="detail-sub">'+c.class+'. Klasse</div></div>';
+  html+='<div style="display:flex;gap:8px;flex-wrap:wrap">';
+  html+='<button class="btn btn-outline btn-sm" onclick="copyChildPrompt(\''+id+'\')">📋 Prompt kopieren</button>';
+  html+='<button class="btn btn-outline btn-sm" onclick="document.getElementById(\'importChild\').dataset.childId=\''+id+'\';document.getElementById(\'importChild\').classList.add(\'open\')">📥 JSON einfügen</button>';
+  html+='<button class="btn btn-outline btn-sm" onclick="openChildModal(\''+id+'\')">✏ Bearbeiten</button>';
+  html+='</div></div>';
+  html+='<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">'+tags+'</div>';
+  if(c.desc) html+='<div class="sect"><div class="sect-label">Beobachtungen</div><div class="sect-val">'+c.desc+'</div></div>';
+  if(c.strength) html+='<div class="sect"><div class="sect-label">Stärken</div><div class="sect-val">'+c.strength+'</div></div>';
+  if(c.measure) html+='<div class="sect"><div class="sect-label">Laufende Maßnahmen</div><div class="sect-val">'+c.measure+'</div></div>';
+  if(c.foerderplan){
+    html+='<div style="margin-top:14px;background:var(--green-l);border:1.5px solid var(--green);border-radius:10px;padding:12px">';
+    html+='<div style="font-size:.68rem;font-weight:700;text-transform:uppercase;color:var(--green);margin-bottom:6px">🤖 KI-FÖRDERPLAN</div>';
+    html+='<div style="font-size:.78rem;line-height:1.6;white-space:pre-wrap">'+c.foerderplan+'</div></div>';
+  } else {
+    html+='<div style="margin-top:12px;padding:10px;border:1.5px dashed var(--border);border-radius:8px;font-size:.75rem;color:var(--muted);text-align:center">Noch kein Förderplan – Prompt kopieren → Claude fragen → JSON einfügen</div>';
+  }
+  document.getElementById('childDetail').innerHTML=html;
+}
+
 function openLessonModal(key,ti,si,d){editingLessonKey=key; const L=lessons[key]||{}; $('#lessonModal').classList.add('open'); $('#lessonModalTitle').textContent=`${si+1}. Stunde`; $('#lessonModalSub').textContent=`${d?fmtDate(d):''} · ${TIMES[si]||''}`; $('#lfach').value=L.fach||''; $('#lthema').value=L.thema||''; $('#lkomp').value=L.kompetenz||''; $('#lverk').value=L.verknuepfung||''; $('#lmgoal').value=L.mindestziel||''; $('#ldown').value=L.diffUnten||''; $('#lup').value=L.diffOben||''; $('#lsocial').value=L.sozialformen||''; $('#lmat').value=L.material||''; $('#lessonDelete').style.display=L.fach?'':'none'; selectedMethods=Array.isArray(L.methoden)?[...L.methoden]:[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=Array.isArray(L.phasen)&&L.phasen.length?JSON.parse(JSON.stringify(L.phasen)):[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList(); $('#lessonImport').style.display='none'; $('#lessonImportText').value=''}
 function renderPhaseList(){const box=$('#phaseList'); box.innerHTML=''; phaseData.forEach((p,i)=>{const row=document.createElement('div'); row.className='phase-row'; row.innerHTML=`<div class="phase-head"><div class="phase-title" style="background:${phaseColor(p.name,i)}">${p.name}</div><input class="mins" type="number" value="${p.min||''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value" placeholder="Min"></div><div class="phase-grid"><textarea oninput="phaseData[${i}].beschreibung=this.value" placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?">${p.beschreibung||''}</textarea><input value="${p.sozialform||''}" oninput="phaseData[${i}].sozialform=this.value" placeholder="Sozialform frei wählen"><textarea oninput="phaseData[${i}].differenzierung=this.value" placeholder="Differenzierung in dieser Phase">${p.differenzierung||''}</textarea></div>`; box.appendChild(row)})}
 function addPhase(){resetAviva()} function resetAviva(){phaseData=[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList()}
@@ -304,6 +332,7 @@ Rahmen:
 - Lehrwerke: ${activeBooks()}
 
 Wichtige Anforderungen:
+- Beziehe dich KONKRET auf das Lehrwerk (Kapitel/Seite/Einheit nennen)
 - Plane die Stunde nach dem AVIVA-Modell.
 - Die Stunde soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Alle Felder müssen vollständig ausgefüllt werden.
@@ -380,6 +409,7 @@ function copyDayPrompt(){
 Rahmen:
 - 6 Unterrichtsstunden
 - Lehrwerke: ${activeBooks()}
+- Beziehe dich KONKRET auf die genannten Lehrwerke (Kapitel/Seiten/Einheiten wenn möglich)
 - Die Planung soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Für jede Stunde müssen alle Felder vollständig ausgefüllt werden.
 - Jede Stunde soll fachlich klar, altersgerecht und praxisnah formuliert sein.
@@ -430,6 +460,7 @@ Rahmen:
 - 5 Tage: Montag bis Freitag
 - 6 Unterrichtsstunden pro Tag
 - Lehrwerke: ${activeBooks()}
+- Beziehe dich KONKRET auf die genannten Lehrwerke (Kapitel/Seiten/Einheiten wenn möglich)
 - Die Planung soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Alle Felder müssen vollständig ausgefüllt werden.
 - Jede Stunde muss fachlich klar, altersgerecht und praxisnah formuliert sein.
@@ -533,7 +564,11 @@ Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
   }
 ]`);
 }
-function copyChildPrompt(id){const c=children.find(x=>x.id==id); if(!c) return toast('Kind nicht gefunden'); copyText(`Erstelle einen Förderplan für ein Kind der ${c.class}. Klasse in Österreich.\n\nDaten:\n- Name/Kürzel: ${c.name}\n- Förderbereiche: ${(c.areas||[]).join(', ')}\n- Beobachtungen: ${c.desc||'-'}\n- Stärken: ${c.strength||'-'}\n- Laufende Maßnahmen: ${c.measure||'-'}\n\nAntworte als klar strukturierter Text mit:\n1. Kurzfristige Ziele\n2. Mittelfristige Ziele\n3. Fördermaßnahmen im Unterricht\n4. Materialien/Methoden\n5. Hinweise für Gespräche mit Eltern`)}
+function copyChildPrompt(id){
+  const c=children.find(x=>x.id==id);
+  if(!c) return toast('Kind nicht gefunden');
+  copyText('Du bist Sonderpädagogin und Volksschullehrerin in Österreich.\n\nKIND: '+c.name+', '+c.class+'. Klasse\nFÖRDERBEREICHE: '+((c.areas||[]).join(', ')||'–')+'\nBEOBACHTUNGEN: '+(c.desc||'–')+'\nSTÄRKEN: '+(c.strength||'–')+'\nMASSNAHMEN: '+(c.measure||'–')+'\n\nErstelle einen konkreten Förderplan. Praxisnah, österreichischer Kontext.\n\nAntworte NUR mit gültigem JSON, kein Text davor oder danach:\n\n{\n  "name": "'+c.name+'",\n  "einschaetzung": "2-3 Sätze zum Förderbedarf",\n  "ziele_kurz": ["Ziel 1 in 4 Wochen", "Ziel 2", "Ziel 3"],\n  "ziele_mittel": ["Ziel bis Semesterende 1", "Ziel 2"],\n  "massnahmen": [\n    {"tipp": "Maßnahme 1", "material": "Material"},\n    {"tipp": "Maßnahme 2", "material": "Material"},\n    {"tipp": "Maßnahme 3", "material": "Material"},\n    {"tipp": "Maßnahme 4", "material": "Material"},\n    {"tipp": "Maßnahme 5", "material": "Material"}\n  ],\n  "differenzierung": "Ideen für Klassenunterricht",\n  "elterngespraech": ["Formulierung 1", "Formulierung 2"]\n}');
+}
 function openImport(id){$('#'+id).classList.add('open')} function toggleImport(id){const el=$('#'+id); el.style.display=el.style.display==='block'?'none':'block'}
 function importDayJson(){const t=$('#importDayText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>{let stunde=Number(e.stunde); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; lessons[`${dateKey(currentDay)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importDay'); renderWeek(); renderTag(); toast('Tagesplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Tagesplan.')}}
 function importWeekJson(){const t=$('#importWeekText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); const mon=getMonday(weekOffset); arr.forEach(e=>{let tag=e.tag; let stunde=Number(e.stunde); if(typeof tag==='string') tag=DAYS.indexOf(tag); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(tag)||tag<0||tag>4) return; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; const d=new Date(mon.getTime()+tag*86400000); lessons[`${dateKey(d)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importWeek'); renderWeek(); renderTag(); toast('Wochenplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Wochenplan.')}}
@@ -543,6 +578,28 @@ function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffse
 function changeTag(d){currentDay.setDate(currentDay.getDate()+d); while(isWeekend(currentDay)) currentDay.setDate(currentDay.getDate()+d); selectedSlot=null; renderTag(); saveState()} function goTodayDay(){currentDay=new Date(); currentDay.setHours(0,0,0,0); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}
 function changeMonth(d){const arr=schoolMonths(schoolYear); monthPos=Math.max(0,Math.min(arr.length-1,monthPos+d)); renderMonth(); saveState()}
 function changeSchoolYear(d){const years=['2024/25','2025/26','2026/27']; const i=years.indexOf(schoolYear); schoolYear=years[Math.max(0,Math.min(years.length-1,i+d))]; $('#schuljahr').value=schoolYear; monthPos=0; renderMonth(); renderYear(); saveState()}
+function importChildJson(){
+  var text=document.getElementById('importChildText').value.trim();
+  if(!text) return toast('Bitte JSON einfügen');
+  try{
+    var d=JSON.parse(text);
+    var id=document.getElementById('importChild').dataset.childId;
+    var c=children.find(function(x){return String(x.id)==String(id);});
+    if(!c) return toast('Kind nicht gefunden');
+    var plan='';
+    if(d.einschaetzung) plan+='EINSCHÄTZUNG\n'+d.einschaetzung+'\n\n';
+    if(d.ziele_kurz&&d.ziele_kurz.length) plan+='KURZFRISTIGE ZIELE\n'+d.ziele_kurz.map(function(z){return '• '+z;}).join('\n')+'\n\n';
+    if(d.ziele_mittel&&d.ziele_mittel.length) plan+='MITTELFRISTIGE ZIELE\n'+d.ziele_mittel.map(function(z){return '• '+z;}).join('\n')+'\n\n';
+    if(d.massnahmen&&d.massnahmen.length) plan+='FÖRDERMASSNAHMEN\n'+d.massnahmen.map(function(m){return '• '+(m.tipp||m)+(m.material?' ('+m.material+')':'');}).join('\n')+'\n\n';
+    if(d.differenzierung) plan+='DIFFERENZIERUNG\n'+d.differenzierung+'\n\n';
+    if(d.elterngespraech&&d.elterngespraech.length) plan+='ELTERNGESPRÄCH\n'+d.elterngespraech.map(function(e){return '• '+e;}).join('\n');
+    c.foerderplan=plan.trim();
+    saveState();
+    closeModal('importChild');
+    showChild(id);
+    toast('Förderplan übernommen ✓');
+  }catch(e){alert('Ungültiges JSON.');}
+}
 function closeModal(id){$('#'+id).classList.remove('open')} $$('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open')}))
 init();
 </script>
