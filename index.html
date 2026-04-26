@@ -767,7 +767,51 @@ function openChildModal(id=null){editingChildId=id; const c=id?children.find(x=>
       booksContainer.appendChild(chip);
     });
   } $('#childDelete').style.display=c?'':'none'; $$('.area').forEach(a=>{const on=(c?.areas||[]).includes(a.dataset.area); a.classList.toggle('on',on); a.style.background=on?AREAS[a.dataset.area]:''})}
-function saveChild(){const name=$('#cname').value.trim(); if(!name) return toast('Bitte Name eingeben'); const entry={id:editingChildId||Date.now(),name,class:+$('#cclass').value,areas:$$('.area.on').map(a=>a.dataset.area),desc:$('#cdesc').value,strength:$('#cstrength').value,measure:$('#cmeasure').value,books:Array.from(document.querySelectorAll('#cbooks-chips .on')).map(function(c){return c.textContent;}).join(', ')}; if(editingChildId){const i=children.findIndex(x=>x.id==editingChildId); if(i>=0) children[i]=entry; else children.push(entry)} else children.push(entry); saveState(); closeModal('childModal'); renderChildren(); toast('Kind gespeichert ✓')}
+async function saveChild(){
+  const name = $('#cname').value.trim();
+  if(!name) return toast('Bitte Name eingeben');
+
+  const entry = {
+    id: editingChildId || Date.now(),
+    name: name,
+    class: +$('#cclass').value,
+    areas: $$('.area.on').map(a => a.dataset.area),
+    desc: $('#cdesc').value,
+    strength: $('#cstrength').value,
+    measure: $('#cmeasure').value,
+    books: Array.from(document.querySelectorAll('#cbooks-chips .on'))
+      .map(function(c){ return c.textContent; })
+      .join(', ')
+  };
+
+  if (editingChildId) {
+    const existing = children.find(x => x.id == editingChildId);
+    if (existing && existing.supabase_id) {
+      entry.supabase_id = existing.supabase_id;
+    }
+    if (existing && existing.foerderplan) {
+      entry.foerderplan = existing.foerderplan;
+    }
+  }
+
+  const savedRow = await saveChildToSupabase(entry);
+  if (!savedRow) return;
+
+  entry.supabase_id = savedRow.id;
+
+  if(editingChildId){
+    const i = children.findIndex(x => x.id == editingChildId);
+    if(i >= 0) children[i] = entry;
+    else children.push(entry);
+  } else {
+    children.push(entry);
+  }
+
+  saveState();
+  closeModal('childModal');
+  renderChildren();
+  toast('Kind gespeichert ✓');
+}
 function deleteChild(){if(!editingChildId) return; children=children.filter(x=>x.id!=editingChildId); saveState(); closeModal('childModal'); renderChildren(); $('#childDetail').innerHTML='<div class="detail-empty">Kein Kind ausgewählt</div>'; toast('Kind gelöscht')}
 function copyLessonPrompt(){
   const c = $('#klasse').value || '1';
