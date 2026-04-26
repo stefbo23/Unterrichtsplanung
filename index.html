@@ -52,7 +52,7 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 </header>
 <div class="tabs" id="tabs"></div>
 <main>
-  <div class="view on" id="view-woche"><div class="note">Ohne API: <b>Prompt kopieren</b> → in ChatGPT oder Claude einfügen → <b>nur JSON</b> zurückkopieren → hier <b>JSON einfügen</b>.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← zurück</button><span class="label" id="weekLabel"></span><button class="btn btn-outline btn-sm" onclick="changeWeek(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goToday()">Heute</button><button class="btn btn-green btn-sm" onclick="copyWochePrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importWeek')">📥 JSON einfügen</button></div><div class="two"><div><div class="week" id="weekGrid"></div></div><div class="sidebar"><div class="title">📋 Lehrwerk-Einheiten</div><p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Klick auf eine Einheit → im Stundenfenster übernehmen</p><div id="sidebar"></div></div></div></div>
+  <div class="view on" id="view-woche"><div class="note">Ohne API: <b>Prompt kopieren</b> → in ChatGPT oder Claude einfügen → <b>nur JSON</b> zurückkopieren → hier <b>JSON einfügen</b>.</div><div id="weekContextBox" style="display:none;margin-bottom:14px;"></div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← zurück</button><span class="label" id="weekLabel"></span><button class="btn btn-outline btn-sm" onclick="changeWeek(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goToday()">Heute</button><button class="btn btn-green btn-sm" onclick="copyWochePrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importWeek')">📥 JSON einfügen</button></div><div class="two"><div><div class="week" id="weekGrid"></div></div><div class="sidebar"><div class="title">📋 Lehrwerk-Einheiten</div><p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Klick auf eine Einheit → im Stundenfenster übernehmen</p><div id="sidebar"></div></div></div></div>
   <div class="view" id="view-tag"><div class="note">Für den Tagesplan: Prompt kopieren, in ChatGPT oder Claude einfügen, <b>nur JSON</b> zurückkopieren und hier übernehmen.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeTag(-1)">← zurück</button><span class="label" id="dayLabel"></span><button class="btn btn-outline btn-sm" onclick="changeTag(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goTodayDay()">Heute</button><input type="date" id="dayPicker" /><button class="btn btn-green btn-sm" onclick="copyDayPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importDay')">📥 JSON einfügen</button></div><div class="tag"><div class="line" id="dayLine"></div><div class="detail" id="dayDetail"></div></div></div>
   <div class="view" id="view-monat"><div class="note">Für die Monatsplanung kopierst du den Prompt für den aktuell gewählten Monat und fügst das JSON hier ein.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">← zurück</button><span class="label" id="monthLabel"></span><button class="btn btn-outline btn-sm" onclick="changeMonth(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyMonthPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importMonth')">📥 JSON einfügen</button><button class="btn btn-outline btn-sm" onclick="openPlanModal('month')">+ Eintrag</button></div><div class="month-layout"><div class="months" id="monthList"></div><div class="month-pane" id="monthPane"></div></div></div>
   <div class="view" id="view-jahr"><div class="note">Für den Jahresplan kopierst du den Prompt, lässt dir von ChatGPT oder Claude nur JSON ausgeben und fügst das JSON hier ein.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(-1)">← zurück</button><span class="label" id="yearLabel"></span><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyYearPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importYear')">📥 JSON einfügen</button></div><div class="year-grid" id="yearGrid"></div></div>
@@ -456,7 +456,76 @@ function renderView(v){if(v==='woche') renderWeek(); if(v==='tag') renderTag(); 
 function renderAll(){renderWeek(); renderTag(); renderMonth(); renderYear(); renderSidebar(); renderChildren(); buildBookSettings(); buildHourSettings()}
 function renderSidebar(){const box=$('#sidebar'); box.innerHTML=''; const kl=+$('#klasse').value||1; Object.entries(BOOKS).forEach(([fach,buecher])=>{const active=Object.keys(buecher).some(b=>selectedBooks[b]); if(!active) return; box.insertAdjacentHTML('beforeend',`<div class="sb-head"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${SCOL[fach]||'#888'}"></span> ${SUBJECTS[fach]||fach}</div>`); Object.entries(buecher).forEach(([book,klassen])=>{if(!selectedBooks[book]) return; box.insertAdjacentHTML('beforeend',`<div class="sb-book">${book}</div>`); (klassen[kl]||[]).forEach(e=>{const d=document.createElement('div'); d.className='sb-item'; d.textContent=e; d.onclick=()=>insertUnit(fach,book,e); box.appendChild(d)})})})}
 function insertUnit(fach,book,unit){if(!$('#lessonModal').classList.contains('open')){toast('Öffne zuerst eine Stunde.'); return} $('#lfach').value=fach; $('#lkomp').value=`[${book}] ${unit}`; if(!$('#lthema').value) $('#lthema').value=unit; toast('Einheit übernommen ✓')}
-function renderWeek(){const mon=getMonday(weekOffset); $('#weekLabel').textContent=`KW ${getKW(mon)} · ${mon.getFullYear()}`; const g=$('#weekGrid'); g.innerHTML=''; g.insertAdjacentHTML('beforeend','<div class="head empty"></div>'); DAYS.forEach((d,i)=>{const dt=new Date(mon.getTime()+i*86400000); g.insertAdjacentHTML('beforeend',`<div class="head"><div>${d}</div><div style="font-weight:300;opacity:.6;font-size:.67rem">${fmtDate(dt)}</div></div>`)}) ; for(let s=0;s<6;s++){g.insertAdjacentHTML('beforeend',`<div class="time"><div>${s+1}.<br><span style="font-size:.62rem">${TIMES[s]}</span></div></div>`); DAYS.forEach((_,ti)=>{const d=new Date(mon.getTime()+ti*86400000), key=`${dateKey(d)}_${s}`, L=lessons[key]; const cell=document.createElement('div'); cell.className='cell'+(L&&L.fach?' has':''); if(L&&L.fach) cell.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; cell.innerHTML=L&&L.fach?`<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`:`<div class="empty">+ planen</div>`; cell.onclick=()=>openLessonModal(key,ti,s,d); g.appendChild(cell)})}}
+function renderWeekContext(){
+  const box = $('#weekContextBox');
+  if(!box) return;
+
+  if(!activeWeekContext){
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+
+  box.style.display = 'block';
+  box.innerHTML = `
+    <div class="card" style="margin-bottom:0">
+      <div class="title">Aktiver Wochenkontext</div>
+      <div style="font-size:.82rem;line-height:1.5">
+        <div><b>Fach:</b> ${SUBJECTS[activeWeekContext.fach] || activeWeekContext.fach || '-'}</div>
+        <div><b>Thema:</b> ${activeWeekContext.thema || '-'}</div>
+        <div><b>Zeitraum:</b> ${activeWeekContext.von || '-'} bis ${activeWeekContext.bis || '-'}</div>
+        ${activeWeekContext.kompetenzen ? `<div><b>Kompetenzen:</b> ${activeWeekContext.kompetenzen}</div>` : ''}
+        ${activeWeekContext.verknuepfung ? `<div><b>Verknüpfung:</b> ${activeWeekContext.verknuepfung}</div>` : ''}
+        ${activeWeekContext.notizen ? `<div><b>Notizen:</b> ${activeWeekContext.notizen}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+function renderWeek(){
+  renderWeekContext();
+
+  const mon = getMonday(weekOffset);
+  $('#weekLabel').textContent = `KW ${getKW(mon)} · ${mon.getFullYear()}`;
+
+  const g = $('#weekGrid');
+  g.innerHTML = '';
+  g.insertAdjacentHTML('beforeend','<div class="head empty"></div>');
+
+  DAYS.forEach((d,i)=>{
+    const dt = new Date(mon.getTime() + i * 86400000);
+    g.insertAdjacentHTML(
+      'beforeend',
+      `<div class="head"><div>${d}</div><div style="font-weight:300;opacity:.6;font-size:.67rem">${fmtDate(dt)}</div></div>`
+    );
+  });
+
+  for(let s=0; s<6; s++){
+    g.insertAdjacentHTML(
+      'beforeend',
+      `<div class="time"><div>${s+1}.<br><span style="font-size:.62rem">${TIMES[s]}</span></div></div>`
+    );
+
+    DAYS.forEach((_,ti)=>{
+      const d = new Date(mon.getTime() + ti * 86400000);
+      const key = `${dateKey(d)}_${s}`;
+      const L = lessons[key];
+
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (L && L.fach ? ' has' : '');
+
+      if(L && L.fach) {
+        cell.style.borderLeftColor = SCOL[L.fach] || 'var(--gray)';
+      }
+
+      cell.innerHTML = L && L.fach
+        ? `<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`
+        : `<div class="empty">+ planen</div>`;
+
+      cell.onclick = () => openLessonModal(key, ti, s, d);
+      g.appendChild(cell);
+    });
+  }
+}
 function renderTag(){if(isWeekend(currentDay)){currentDay.setDate(currentDay.getDate()+1); return renderTag()} $('#dayLabel').textContent=fmtLong(currentDay); $('#dayPicker').value=dateKey(currentDay); const line=$('#dayLine'); line.innerHTML=''; for(let s=0;s<6;s++){if(s>0&&PAUSES[s-1]) line.insertAdjacentHTML('beforeend','<div class="pause">☕ Pause</div>'); const key=`${dateKey(currentDay)}_${s}`, L=lessons[key]; const div=document.createElement('div'); div.className='slot'+(L&&L.fach?' has':'')+(selectedSlot===s?' on':''); if(L&&L.fach) div.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; div.innerHTML=`<div class="slot-time">${s+1}. Std · ${TIMES[s]}</div>${L&&L.fach?`<div class="slot-fach" style="color:${SCOL[L.fach]}">${SUBJECTS[L.fach]||L.fach}</div><div class="slot-thema">${L.thema||''}</div>`:`<div class="empty">+ Stunde planen</div>`}`; div.onclick=()=>{selectedSlot=s; renderTag(); renderDayDetail(key,s)}; div.ondblclick=()=>openLessonModal(key,-1,s,currentDay); line.appendChild(div)} if(selectedSlot!==null) renderDayDetail(`${dateKey(currentDay)}_${selectedSlot}`,selectedSlot); else $('#dayDetail').innerHTML='<div class="detail-empty">← Stunde auswählen</div>'}
 function renderDayDetail(key,s){const L=lessons[key]; const box=$('#dayDetail'); if(!L||!L.fach){box.innerHTML=`<div class="detail-empty"><div><div style="margin-bottom:12px">${s+1}. Stunde · ${TIMES[s]}</div><button class="btn btn-green" onclick="openLessonModal('${key}',-1,${s},currentDay)">+ Stunde planen</button></div></div>`; return} const phases=(L.phasen||[]).map((p,i)=>`<div class="phase" style="background:${phaseColor(p.name,i)}"><span>${p.name}</span><small>${p.min||''}′</small></div>`).join(''); const phaseDetails=(L.phasen||[]).map((p,i)=>`<div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px"><div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:${phaseColor(p.name,i)};margin-bottom:6px">${p.name} · ${p.min||''} Min</div>${p.beschreibung?`<div class="sect-val" style="margin-bottom:6px">${p.beschreibung}</div>`:''}${p.sozialform?`<div style="font-size:.76rem;margin-bottom:4px"><b>Sozialform:</b> ${p.sozialform}</div>`:''}${p.differenzierung?`<div style="font-size:.76rem"><b>Differenzierung:</b> ${p.differenzierung}</div>`:''}</div>`).join(''); const methods=(L.methoden||[]).map(m=>`<span class="chip">${m}</span>`).join(''); box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px"><div><div class="detail-title">${L.thema||'(kein Thema)'}</div><div class="detail-sub">${s+1}. Stunde · ${TIMES[s]}</div></div><button class="btn btn-outline btn-sm" onclick="openLessonModal('${key}',-1,${s},currentDay)">✏ Bearbeiten</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span style="background:${SCOL[L.fach]};color:#fff;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700">${SUBJECTS[L.fach]||L.fach}</span></div>${L.phasen?.length?`<div class="sect"><div class="sect-label">AVIVA Überblick</div><div class="phases">${phases}</div></div><div class="sect"><div class="sect-label">AVIVA im Detail</div>${phaseDetails}</div>`:''}${L.methoden?.length?`<div class="sect"><div class="sect-label">Methoden</div><div class="chips">${methods}</div></div>`:''}${L.kompetenz?`<div class="sect"><div class="sect-label">Lehrplanbezug</div><div class="sect-val">${L.kompetenz}</div></div>`:''}${L.verknuepfung?`<div class="sect"><div class="sect-label">Fächerübergreifend</div><div class="sect-val">${L.verknuepfung}</div></div>`:''}${L.mindestziel?`<div class="sect"><div class="sect-label">Mindestziel</div><div class="sect-val">${L.mindestziel}</div></div>`:''}${L.diffUnten?`<div class="sect"><div class="sect-label">Differenzierung nach unten</div><div class="sect-val">${L.diffUnten}</div></div>`:''}${L.diffOben?`<div class="sect"><div class="sect-label">Differenzierung nach oben</div><div class="sect-val">${L.diffOben}</div></div>`:''}${L.sozialformen?`<div class="sect"><div class="sect-label">Sozialformen</div><div class="sect-val">${L.sozialformen}</div></div>`:''}${L.material?`<div class="sect"><div class="sect-label">Material / Notizen</div><div class="sect-val">${L.material}</div></div>`:''}`}
 function inWochenplanungÜbernehmen(monthId){
