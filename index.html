@@ -466,6 +466,19 @@ async function übernehmenInMonatsplanung(yearId){
     return;
   }
 
+  const exists = monthEntries.find(e =>
+    String(e.source_year_id || '') === String(yearEntry.id || '') ||
+    (
+      yearEntry.supabase_id &&
+      String(e.source_year_supabase_id || '') === String(yearEntry.supabase_id)
+    )
+  );
+
+  if (exists) {
+    toast('Bereits in Monatsplanung vorhanden');
+    return;
+  }
+
   const monthEntry = {
     id: Date.now() + Math.random(),
     fach: yearEntry.fach || '',
