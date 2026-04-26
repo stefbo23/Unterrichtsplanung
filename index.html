@@ -723,6 +723,45 @@ async function saveChildToSupabase(child) {
 
   return data;
 }
+  async function loadSettingsFromSupabase() {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    return false;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('user_settings')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .single();
+
+  if (error) {
+    console.log('loadSettingsFromSupabase error:', error);
+    return false;
+  }
+
+  if (!data) return false;
+
+  selectedBooks = data.selected_books || selectedBooks;
+  hoursCfg = data.hours_cfg || hoursCfg;
+  monthPos = typeof data.month_pos === 'number' ? data.month_pos : monthPos;
+
+  $('#focus').value = data.focus || '';
+  $('#optMethods').checked = data.opt_methods !== false;
+  $('#optPhases').checked = data.opt_phases !== false;
+  $('#optGen').checked = data.opt_gen !== false;
+
+  if (data.current_day) {
+    currentDay = new Date(data.current_day + 'T12:00:00');
+  }
+
+  buildBookSettings();
+  buildHourSettings();
+  renderAll();
+
+  return true;
+}
 async function savePlanEntry(){
   const arr = editingPlanMode === 'year' ? yearEntries : monthEntries;
   const thema = $('#pthema').value.trim();
