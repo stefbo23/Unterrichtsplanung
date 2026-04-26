@@ -569,6 +569,45 @@ async function saveLesson(){
 function deleteLesson(){if(!editingLessonKey) return; delete lessons[editingLessonKey]; saveState(); closeModal('lessonModal'); renderWeek(); renderTag(); toast('Stunde gelöscht')}
 function importLessonJson(){const text=$('#lessonImportText').value.trim(); if(!text) return toast('Bitte JSON einfügen'); try{const d=JSON.parse(text); $('#lfach').value=d.fach||''; $('#lthema').value=d.thema||''; $('#lkomp').value=d.kompetenz||''; $('#lverk').value=d.verknuepfung||''; $('#lmgoal').value=d.mindestziel||''; $('#ldown').value=d.differenzierung_unten||''; $('#lup').value=d.differenzierung_oben||''; $('#lsocial').value=Array.isArray(d.sozialformen)?d.sozialformen.join(', '):(d.sozialformen||''); $('#lmat').value=d.material||''; selectedMethods=Array.isArray(d.methoden)?[...d.methoden]:[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=Array.isArray(d.phasen)&&d.phasen.length?JSON.parse(JSON.stringify(d.phasen)):[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList(); $('#lessonImport').style.display='none'; toast('Stunden-JSON übernommen ✓')}catch(e){alert('Ungültiges JSON für Stunde.')}}
 function openPlanModal(mode,id=null,year=null,month=null){editingPlanMode=mode; editingPlanId=id; const arr=mode==='year'?yearEntries:monthEntries; const E=id?arr.find(x=>x.id===id):null; const cur=mode==='month'?currentMonthObj():{year,month}; $('#planModal').classList.add('open'); $('#planTitle').textContent=mode==='year'?(id?'Jahreseintrag bearbeiten':'Neuer Jahreseintrag'):(id?'Monatseintrag bearbeiten':'Neuer Monatseintrag'); $('#planSub').textContent=`${MONTHS[cur.month]} ${cur.year}`; $('#pfach').value=E?.fach||''; $('#pthema').value=E?.thema||''; $('#pfrom').value=E?.von||(id?'':`${cur.year}-${pad(cur.month+1)}-01`); $('#pto').value=E?.bis||(id?'':`${cur.year}-${pad(cur.month+1)}-${new Date(cur.year,cur.month+1,0).getDate()}`); $('#pkomp').value=E?.kompetenz||''; $('#pverk').value=E?.verknuepfung||''; $('#pnote').value=E?.notizen||''; $('#planDelete').style.display=id?'':'none'}
+async function saveMonthEntryToSupabase(entry) {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    toast('Bitte zuerst einloggen');
+    return false;
+  }
+
+  const payload = {
+    user_id: userData.user.id,
+    school_year: $('#schuljahr').value,
+    klasse: $('#klasse').value,
+    fach: entry.fach || '',
+    thema: entry.thema || '',
+    von: entry.von || null,
+    bis: entry.bis || null,
+    kompetenzen: entry.kompetenzen || '',
+    verknuepfung: entry.verknuepfung || '',
+    notizen: entry.notizen || ''
+  };
+
+  if (entry.supabase_id) {
+    payload.id = entry.supabase_id;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('month_entries')
+    .upsert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.log('saveMonthEntryToSupabase error:', error);
+    toast('Monatseintrag in Supabase fehlgeschlagen');
+    return false;
+  }
+
+  return data;
+}
 function savePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthEntries; const thema=$('#pthema').value.trim(); if(!thema) return toast('Bitte Thema eingeben'); const entry={id:editingPlanId||Date.now()+Math.random(),fach:$('#pfach').value,thema:thema,von:$('#pfrom').value,bis:$('#pto').value,kompetenz:$('#pkomp').value,verknuepfung:$('#pverk').value,notizen:$('#pnote').value}; if(editingPlanId){const i=arr.findIndex(x=>x.id===editingPlanId); if(i>=0) arr[i]=entry; else arr.push(entry)} else arr.push(entry); saveState(); closeModal('planModal'); renderMonth(); renderYear(); toast('Eintrag gespeichert ✓')}
 function deletePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthEntries; if(!editingPlanId) return; const i=arr.findIndex(x=>x.id===editingPlanId); if(i>=0) arr.splice(i,1); saveState(); closeModal('planModal'); renderMonth(); renderYear(); toast('Eintrag gelöscht')}
 function openChildModal(id=null){editingChildId=id; const c=id?children.find(x=>x.id==id):null; $('#childModal').classList.add('open'); $('#childTitle').textContent=c?'Kind bearbeiten':'Kind anlegen'; $('#cname').value=c?.name||''; $('#cclass').innerHTML=['1','2','3','4'].map(k=>`<option value="${k}">${k}. Klasse</option>`).join(''); $('#cclass').value=c?.class||$('#klasse').value; $('#cdesc').value=c?.desc||''; $('#cstrength').value=c?.strength||''; $('#cmeasure').value=c?.measure||'';
