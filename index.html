@@ -677,6 +677,20 @@ async function savePlanEntry(){
     entry.supabase_id = savedRow.id;
   }
 
+  if (editingPlanMode === 'year') {
+    if (editingPlanId) {
+      const existing = yearEntries.find(x => x.id === editingPlanId);
+      if (existing && existing.supabase_id) {
+        entry.supabase_id = existing.supabase_id;
+      }
+    }
+
+    const savedRow = await saveYearEntryToSupabase(entry);
+    if (!savedRow) return;
+
+    entry.supabase_id = savedRow.id;
+  }
+
   if(editingPlanId){
     const i = arr.findIndex(x => x.id === editingPlanId);
     if(i >= 0) arr[i] = entry;
