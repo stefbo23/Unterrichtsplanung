@@ -1166,27 +1166,38 @@ function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffse
 function changeTag(d){currentDay.setDate(currentDay.getDate()+d); while(isWeekend(currentDay)) currentDay.setDate(currentDay.getDate()+d); selectedSlot=null; renderTag(); saveState()} function goTodayDay(){currentDay=new Date(); currentDay.setHours(0,0,0,0); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}
 function changeMonth(d){const arr=schoolMonths(schoolYear); monthPos=Math.max(0,Math.min(arr.length-1,monthPos+d)); renderMonth(); saveState()}
 function changeSchoolYear(d){const years=['2024/25','2025/26','2026/27']; const i=years.indexOf(schoolYear); schoolYear=years[Math.max(0,Math.min(years.length-1,i+d))]; $('#schuljahr').value=schoolYear; monthPos=0; renderMonth(); renderYear(); saveState()}
-function importChildJson(){
-  var text=document.getElementById('importChildText').value.trim();
+async function importChildJson(){
+  var text = document.getElementById('importChildText').value.trim();
   if(!text) return toast('Bitte JSON einfügen');
+
   try{
-    var d=JSON.parse(text);
-    var id=document.getElementById('importChild').dataset.childId;
-    var c=children.find(function(x){return String(x.id)===String(id);});
+    var d = JSON.parse(text);
+    var id = document.getElementById('importChild').dataset.childId;
+    var c = children.find(function(x){ return String(x.id) === String(id); });
     if(!c) return toast('Kind nicht gefunden');
-    var plan='';
-    if(d.einschaetzung) plan+='EINSCHÄTZUNG\n'+d.einschaetzung+'\n\n';
-    if(d.ziele_kurz&&d.ziele_kurz.length) plan+='KURZFRISTIGE ZIELE (4 Wochen)\n'+d.ziele_kurz.map(function(z){return '• '+z;}).join('\n')+'\n\n';
-    if(d.ziele_mittel&&d.ziele_mittel.length) plan+='MITTELFRISTIGE ZIELE\n'+d.ziele_mittel.map(function(z){return '• '+z;}).join('\n')+'\n\n';
-    if(d.massnahmen&&d.massnahmen.length) plan+='FÖRDERMASSNAHMEN\n'+d.massnahmen.map(function(m){return '• '+(m.tipp||m)+(m.material?' ('+m.material+')':'');}).join('\n')+'\n\n';
-    if(d.differenzierung) plan+='DIFFERENZIERUNG\n'+d.differenzierung+'\n\n';
-    if(d.elterngespraech&&d.elterngespraech.length) plan+='ELTERNGESPRÄCH\n'+d.elterngespraech.map(function(e){return '• '+e;}).join('\n');
-    c.foerderplan=plan.trim();
+
+    var plan = '';
+    if(d.einschaetzung) plan += 'EINSCHÄTZUNG\n' + d.einschaetzung + '\n\n';
+    if(d.ziele_kurz && d.ziele_kurz.length) plan += 'KURZFRISTIGE ZIELE (4 Wochen)\n' + d.ziele_kurz.map(function(z){ return '• ' + z; }).join('\n') + '\n\n';
+    if(d.ziele_mittel && d.ziele_mittel.length) plan += 'MITTELFRISTIGE ZIELE\n' + d.ziele_mittel.map(function(z){ return '• ' + z; }).join('\n') + '\n\n';
+    if(d.massnahmen && d.massnahmen.length) plan += 'FÖRDERMASSNAHMEN\n' + d.massnahmen.map(function(m){ return '• ' + (m.tipp || m) + (m.material ? ' (' + m.material + ')' : ''); }).join('\n') + '\n\n';
+    if(d.differenzierung) plan += 'DIFFERENZIERUNG\n' + d.differenzierung + '\n\n';
+    if(d.elterngespraech && d.elterngespraech.length) plan += 'ELTERNGESPRÄCH\n' + d.elterngespraech.map(function(e){ return '• ' + e; }).join('\n');
+
+    c.foerderplan = plan.trim();
+
+    const savedRow = await saveChildToSupabase(c);
+    if (!savedRow) return;
+
+    c.supabase_id = savedRow.id;
+
     saveState();
     closeModal('importChild');
     showChild(id);
     toast('Förderplan übernommen ✓');
-  }catch(e){alert('Ungültiges JSON. Nur den JSON-Teil aus Claude kopieren.');}
+  }catch(e){
+    alert('Ungültiges JSON. Nur den JSON-Teil aus Claude kopieren.');
+  }
 }
 function closeModal(id){$('#'+id).classList.remove('open')} $$('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open')}))
 init();
