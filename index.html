@@ -647,6 +647,46 @@ async function saveYearEntryToSupabase(entry) {
 
   return data;
 }
+async function saveChildToSupabase(child) {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    toast('Bitte zuerst einloggen');
+    return false;
+  }
+
+  const payload = {
+    user_id: userData.user.id,
+    school_year: $('#schuljahr').value,
+    klasse: $('#klasse').value,
+    name: child.name || '',
+    child_class: child.class || '',
+    books: child.books || '',
+    areas: child.areas || [],
+    observations: child.desc || '',
+    strength: child.strength || '',
+    measure: child.measure || '',
+    foerderplan: child.foerderplan || ''
+  };
+
+  if (child.supabase_id) {
+    payload.id = child.supabase_id;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('children')
+    .upsert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.log('saveChildToSupabase error:', error);
+    toast('Kind/Förderplan in Supabase fehlgeschlagen');
+    return false;
+  }
+
+  return data;
+}
 async function savePlanEntry(){
   const arr = editingPlanMode === 'year' ? yearEntries : monthEntries;
   const thema = $('#pthema').value.trim();
