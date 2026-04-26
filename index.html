@@ -240,7 +240,7 @@ function currentContextKey(){
   const kl = $('#klasse').value || '1';
   return `${sy}__${kl}`;
 }
-function saveState(){
+async function saveState(){
   const key = currentContextKey();
 
   let store = {};
@@ -271,6 +271,7 @@ function saveState(){
   store.lastKlasse = $('#klasse').value;
 
   localStorage.setItem('vs_all', JSON.stringify(store));
+  saveSettingsToSupabase();
 }
 function loadState(){
   let store = {};
