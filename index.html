@@ -495,14 +495,6 @@ function inWochenplanungÜbernehmen(monthId){
 
   saveState();
   renderMonth();
-
-  $$('.tab').forEach(x => x.classList.remove('on'));
-  const weekTab = document.querySelector('.tab[data-view="woche"]');
-  if (weekTab) weekTab.classList.add('on');
-
-  $$('.view').forEach(v => v.classList.remove('on'));
-  $('#view-woche').classList.add('on');
-
   renderWeek();
   toast('In Wochenplanung übernommen ✓');
 }
