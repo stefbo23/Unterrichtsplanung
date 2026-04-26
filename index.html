@@ -241,6 +241,8 @@ function currentContextKey(){
   return `${sy}__${kl}`;
 }
 async function saveState(){
+  console.log('saveState gestartet');
+
   const key = currentContextKey();
 
   let store = {};
@@ -688,7 +690,7 @@ async function saveChildToSupabase(child) {
 
   return data;
 }
-  async function saveSettingsToSupabase() {
+async function saveSettingsToSupabase() {
   const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 
   if (userError || !userData.user) {
@@ -710,11 +712,17 @@ async function saveChildToSupabase(child) {
     current_day: currentDay ? dateKey(currentDay) : null
   };
 
+  console.log('settings payload:', payload);
+  console.log('settings user:', userData.user);
+
   const { data, error } = await supabaseClient
     .from('user_settings')
     .upsert(payload, { onConflict: 'user_id' })
     .select()
     .single();
+
+  console.log('settings save result data:', data);
+  console.log('settings save result error:', error);
 
   if (error) {
     console.log('saveSettingsToSupabase error:', error);
