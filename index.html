@@ -458,6 +458,53 @@ function insertUnit(fach,book,unit){if(!$('#lessonModal').classList.contains('op
 function renderWeek(){const mon=getMonday(weekOffset); $('#weekLabel').textContent=`KW ${getKW(mon)} · ${mon.getFullYear()}`; const g=$('#weekGrid'); g.innerHTML=''; g.insertAdjacentHTML('beforeend','<div class="head empty"></div>'); DAYS.forEach((d,i)=>{const dt=new Date(mon.getTime()+i*86400000); g.insertAdjacentHTML('beforeend',`<div class="head"><div>${d}</div><div style="font-weight:300;opacity:.6;font-size:.67rem">${fmtDate(dt)}</div></div>`)}) ; for(let s=0;s<6;s++){g.insertAdjacentHTML('beforeend',`<div class="time"><div>${s+1}.<br><span style="font-size:.62rem">${TIMES[s]}</span></div></div>`); DAYS.forEach((_,ti)=>{const d=new Date(mon.getTime()+ti*86400000), key=`${dateKey(d)}_${s}`, L=lessons[key]; const cell=document.createElement('div'); cell.className='cell'+(L&&L.fach?' has':''); if(L&&L.fach) cell.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; cell.innerHTML=L&&L.fach?`<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`:`<div class="empty">+ planen</div>`; cell.onclick=()=>openLessonModal(key,ti,s,d); g.appendChild(cell)})}}
 function renderTag(){if(isWeekend(currentDay)){currentDay.setDate(currentDay.getDate()+1); return renderTag()} $('#dayLabel').textContent=fmtLong(currentDay); $('#dayPicker').value=dateKey(currentDay); const line=$('#dayLine'); line.innerHTML=''; for(let s=0;s<6;s++){if(s>0&&PAUSES[s-1]) line.insertAdjacentHTML('beforeend','<div class="pause">☕ Pause</div>'); const key=`${dateKey(currentDay)}_${s}`, L=lessons[key]; const div=document.createElement('div'); div.className='slot'+(L&&L.fach?' has':'')+(selectedSlot===s?' on':''); if(L&&L.fach) div.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; div.innerHTML=`<div class="slot-time">${s+1}. Std · ${TIMES[s]}</div>${L&&L.fach?`<div class="slot-fach" style="color:${SCOL[L.fach]}">${SUBJECTS[L.fach]||L.fach}</div><div class="slot-thema">${L.thema||''}</div>`:`<div class="empty">+ Stunde planen</div>`}`; div.onclick=()=>{selectedSlot=s; renderTag(); renderDayDetail(key,s)}; div.ondblclick=()=>openLessonModal(key,-1,s,currentDay); line.appendChild(div)} if(selectedSlot!==null) renderDayDetail(`${dateKey(currentDay)}_${selectedSlot}`,selectedSlot); else $('#dayDetail').innerHTML='<div class="detail-empty">← Stunde auswählen</div>'}
 function renderDayDetail(key,s){const L=lessons[key]; const box=$('#dayDetail'); if(!L||!L.fach){box.innerHTML=`<div class="detail-empty"><div><div style="margin-bottom:12px">${s+1}. Stunde · ${TIMES[s]}</div><button class="btn btn-green" onclick="openLessonModal('${key}',-1,${s},currentDay)">+ Stunde planen</button></div></div>`; return} const phases=(L.phasen||[]).map((p,i)=>`<div class="phase" style="background:${phaseColor(p.name,i)}"><span>${p.name}</span><small>${p.min||''}′</small></div>`).join(''); const phaseDetails=(L.phasen||[]).map((p,i)=>`<div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px"><div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:${phaseColor(p.name,i)};margin-bottom:6px">${p.name} · ${p.min||''} Min</div>${p.beschreibung?`<div class="sect-val" style="margin-bottom:6px">${p.beschreibung}</div>`:''}${p.sozialform?`<div style="font-size:.76rem;margin-bottom:4px"><b>Sozialform:</b> ${p.sozialform}</div>`:''}${p.differenzierung?`<div style="font-size:.76rem"><b>Differenzierung:</b> ${p.differenzierung}</div>`:''}</div>`).join(''); const methods=(L.methoden||[]).map(m=>`<span class="chip">${m}</span>`).join(''); box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px"><div><div class="detail-title">${L.thema||'(kein Thema)'}</div><div class="detail-sub">${s+1}. Stunde · ${TIMES[s]}</div></div><button class="btn btn-outline btn-sm" onclick="openLessonModal('${key}',-1,${s},currentDay)">✏ Bearbeiten</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span style="background:${SCOL[L.fach]};color:#fff;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700">${SUBJECTS[L.fach]||L.fach}</span></div>${L.phasen?.length?`<div class="sect"><div class="sect-label">AVIVA Überblick</div><div class="phases">${phases}</div></div><div class="sect"><div class="sect-label">AVIVA im Detail</div>${phaseDetails}</div>`:''}${L.methoden?.length?`<div class="sect"><div class="sect-label">Methoden</div><div class="chips">${methods}</div></div>`:''}${L.kompetenz?`<div class="sect"><div class="sect-label">Lehrplanbezug</div><div class="sect-val">${L.kompetenz}</div></div>`:''}${L.verknuepfung?`<div class="sect"><div class="sect-label">Fächerübergreifend</div><div class="sect-val">${L.verknuepfung}</div></div>`:''}${L.mindestziel?`<div class="sect"><div class="sect-label">Mindestziel</div><div class="sect-val">${L.mindestziel}</div></div>`:''}${L.diffUnten?`<div class="sect"><div class="sect-label">Differenzierung nach unten</div><div class="sect-val">${L.diffUnten}</div></div>`:''}${L.diffOben?`<div class="sect"><div class="sect-label">Differenzierung nach oben</div><div class="sect-val">${L.diffOben}</div></div>`:''}${L.sozialformen?`<div class="sect"><div class="sect-label">Sozialformen</div><div class="sect-val">${L.sozialformen}</div></div>`:''}${L.material?`<div class="sect"><div class="sect-label">Material / Notizen</div><div class="sect-val">${L.material}</div></div>`:''}`}
+function inWochenplanungÜbernehmen(monthId){
+  const monthEntry = monthEntries.find(e => String(e.id) === String(monthId));
+  if(!monthEntry){
+    toast('Monatseintrag nicht gefunden');
+    return;
+  }
+
+  if (monthEntry.in_week_planning) {
+    toast('Bereits in Wochenplanung vorhanden');
+    return;
+  }
+
+  monthEntry.in_week_planning = true;
+
+  activeWeekContext = {
+    id: monthEntry.id,
+    fach: monthEntry.fach || '',
+    thema: monthEntry.thema || '',
+    von: monthEntry.von || '',
+    bis: monthEntry.bis || '',
+    kompetenzen: monthEntry.kompetenzen || monthEntry.kompetenz || '',
+    verknuepfung: monthEntry.verknuepfung || '',
+    notizen: monthEntry.notizen || ''
+  };
+
+  if (monthEntry.von) {
+    const d = new Date(monthEntry.von + 'T12:00:00');
+    const todayMonday = getMonday(0);
+    const targetMonday = new Date(d);
+    const day = targetMonday.getDay();
+    targetMonday.setDate(targetMonday.getDate() - (day === 0 ? 6 : day - 1));
+    weekOffset = Math.round((targetMonday - todayMonday) / (7 * 24 * 60 * 60 * 1000));
+  }
+
+  saveState();
+  renderMonth();
+
+  $$('.tab').forEach(x => x.classList.remove('on'));
+  const weekTab = document.querySelector('.tab[data-view="woche"]');
+  if (weekTab) weekTab.classList.add('on');
+
+  $$('.view').forEach(v => v.classList.remove('on'));
+  $('#view-woche').classList.add('on');
+
+  renderWeek();
+  toast('In Wochenplanung übernommen ✓');
+}
 function renderMonth(){const cur=currentMonthObj(); $('#monthLabel').textContent=`${MONTHS[cur.month]} ${cur.year}`; const list=$('#monthList'); list.innerHTML=''; schoolMonths(schoolYear).forEach((m,idx)=>{const count=monthEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===m.year&&new Date(e.von).getMonth()===m.month).length; const item=document.createElement('div'); item.className='month-item'+(idx===monthPos?' on':''); item.innerHTML=`<div style="font-weight:700">${MONTHS[m.month]} ${m.year}</div><div style="font-size:.72rem;color:var(--muted)">${count} Einträge</div>`; item.onclick=()=>{monthPos=idx; saveState(); renderMonth()}; list.appendChild(item)}); const pane=$('#monthPane'); const breaks=monthBreaks(cur.year,cur.month,schoolYear); const entries=monthEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===cur.year&&new Date(e.von).getMonth()===cur.month); pane.innerHTML=`<div class="detail-title">${MONTHS[cur.month]} ${cur.year}</div><div class="detail-sub">Monatsplanung</div>`; breaks.forEach(b=>pane.insertAdjacentHTML('beforeend',`<div class="break">🏖 ${b.name}</div>`)); if(!entries.length){pane.insertAdjacentHTML('beforeend','<div class="detail-empty" style="min-height:160px">Keine Monatseinträge vorhanden</div>')} else {entries.forEach(e=>{const el=document.createElement('div'); el.className='entry'; el.style.borderLeftColor=SCOL[e.fach]||'var(--gray)'; el.innerHTML=`<div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div><div class="entry-t">${e.thema||''}</div>${e.verknuepfung?`<div class="entry-m">🔗 ${e.verknuepfung}</div>`:''}`; el.onclick=()=>openPlanModal('month',e.id); pane.appendChild(el)})}}
 async function übernehmenInMonatsplanung(yearId){
   const yearEntry = yearEntries.find(e => String(e.id) === String(yearId));
