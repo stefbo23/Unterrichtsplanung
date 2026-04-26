@@ -1272,6 +1272,18 @@ function copyWochePrompt(){
   const klasse = $('#klasse').value || '1';
   const mon = getMonday(weekOffset);
 
+  const monthContextText = activeWeekContext ? `
+Monatskontext:
+- Fach: ${activeWeekContext.fach}
+- Thema: ${activeWeekContext.thema}
+- Zeitraum: ${activeWeekContext.von} bis ${activeWeekContext.bis}
+- Kompetenzen: ${activeWeekContext.kompetenzen}
+- Verknüpfung: ${activeWeekContext.verknuepfung}
+- Notizen: ${activeWeekContext.notizen}
+
+Nutze diesen Monatskontext als Grundlage für die Wochenplanung. Die Woche soll inhaltlich klar aus diesem Monatseintrag weitergedacht werden.
+` : '';
+
   copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.
 
 Rahmen:
@@ -1290,6 +1302,7 @@ Rahmen:
 - Fächerübergreifende Verknüpfungen müssen sichtbar sein.
 - Sinnvolle Fächerverteilung über die Woche hinweg.
 - Ohne Handy.
+${monthContextText}
 ${extraPrompt()}
 
 Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
