@@ -505,7 +505,82 @@ function inWochenplanungÜbernehmen(monthId){
   renderWeek();
   toast('In Wochenplanung übernommen ✓');
 }
-function renderMonth(){const cur=currentMonthObj(); $('#monthLabel').textContent=`${MONTHS[cur.month]} ${cur.year}`; const list=$('#monthList'); list.innerHTML=''; schoolMonths(schoolYear).forEach((m,idx)=>{const count=monthEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===m.year&&new Date(e.von).getMonth()===m.month).length; const item=document.createElement('div'); item.className='month-item'+(idx===monthPos?' on':''); item.innerHTML=`<div style="font-weight:700">${MONTHS[m.month]} ${m.year}</div><div style="font-size:.72rem;color:var(--muted)">${count} Einträge</div>`; item.onclick=()=>{monthPos=idx; saveState(); renderMonth()}; list.appendChild(item)}); const pane=$('#monthPane'); const breaks=monthBreaks(cur.year,cur.month,schoolYear); const entries=monthEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===cur.year&&new Date(e.von).getMonth()===cur.month); pane.innerHTML=`<div class="detail-title">${MONTHS[cur.month]} ${cur.year}</div><div class="detail-sub">Monatsplanung</div>`; breaks.forEach(b=>pane.insertAdjacentHTML('beforeend',`<div class="break">🏖 ${b.name}</div>`)); if(!entries.length){pane.insertAdjacentHTML('beforeend','<div class="detail-empty" style="min-height:160px">Keine Monatseinträge vorhanden</div>')} else {entries.forEach(e=>{const el=document.createElement('div'); el.className='entry'; el.style.borderLeftColor=SCOL[e.fach]||'var(--gray)'; el.innerHTML=`<div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div><div class="entry-t">${e.thema||''}</div>${e.verknuepfung?`<div class="entry-m">🔗 ${e.verknuepfung}</div>`:''}`; el.onclick=()=>openPlanModal('month',e.id); pane.appendChild(el)})}}
+function renderMonth(){
+  const cur = currentMonthObj();
+  $('#monthLabel').textContent = `${MONTHS[cur.month]} ${cur.year}`;
+
+  const list = $('#monthList');
+  list.innerHTML = '';
+
+  schoolMonths(schoolYear).forEach((m, idx) => {
+    const count = monthEntries.filter(e =>
+      e.von &&
+      new Date(e.von).getFullYear() === m.year &&
+      new Date(e.von).getMonth() === m.month
+    ).length;
+
+    const item = document.createElement('div');
+    item.className = 'month-item' + (idx === monthPos ? ' on' : '');
+    item.innerHTML = `
+      <div style="font-weight:700">${MONTHS[m.month]} ${m.year}</div>
+      <div style="font-size:.72rem;color:var(--muted)">${count} Einträge</div>
+    `;
+    item.onclick = () => {
+      monthPos = idx;
+      saveState();
+      renderMonth();
+    };
+    list.appendChild(item);
+  });
+
+  const pane = $('#monthPane');
+  const breaks = monthBreaks(cur.year, cur.month, schoolYear);
+  const entries = monthEntries.filter(e =>
+    e.von &&
+    new Date(e.von).getFullYear() === cur.year &&
+    new Date(e.von).getMonth() === cur.month
+  );
+
+  pane.innerHTML = `
+    <div class="detail-title">${MONTHS[cur.month]} ${cur.year}</div>
+    <div class="detail-sub">Monatsplanung</div>
+  `;
+
+  breaks.forEach(b => {
+    pane.insertAdjacentHTML('beforeend', `<div class="break">🏖 ${b.name}</div>`);
+  });
+
+  if(!entries.length){
+    pane.insertAdjacentHTML(
+      'beforeend',
+      '<div class="detail-empty" style="min-height:160px">Keine Monatseinträge vorhanden</div>'
+    );
+  } else {
+    entries.forEach(e => {
+      const alreadyInWeek = !!e.in_week_planning;
+
+      const el = document.createElement('div');
+      el.className = 'entry';
+      el.style.borderLeftColor = SCOL[e.fach] || 'var(--gray)';
+      el.innerHTML = `
+        <div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div>
+        <div class="entry-t">${e.thema||''}</div>
+        ${e.verknuepfung ? `<div class="entry-m">🔗 ${e.verknuepfung}</div>` : ''}
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button
+            class="btn btn-outline btn-sm"
+            ${alreadyInWeek ? 'disabled style="opacity:.6;cursor:default"' : ''}
+            onclick="event.stopPropagation(); inWochenplanungÜbernehmen('${e.id}')"
+          >
+            ${alreadyInWeek ? '✓ In Wochenplanung' : 'In Wochenplanung übernehmen'}
+          </button>
+        </div>
+      `;
+      el.onclick = () => openPlanModal('month', e.id);
+      pane.appendChild(el);
+    });
+  }
+}
 async function übernehmenInMonatsplanung(yearId){
   const yearEntry = yearEntries.find(e => String(e.id) === String(yearId));
   if(!yearEntry){
