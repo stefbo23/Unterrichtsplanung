@@ -608,6 +608,45 @@ async function saveMonthEntryToSupabase(entry) {
 
   return data;
 }
+async function saveYearEntryToSupabase(entry) {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    toast('Bitte zuerst einloggen');
+    return false;
+  }
+
+  const payload = {
+    user_id: userData.user.id,
+    school_year: $('#schuljahr').value,
+    klasse: $('#klasse').value,
+    fach: entry.fach || '',
+    thema: entry.thema || '',
+    von: entry.von || null,
+    bis: entry.bis || null,
+    kompetenzen: entry.kompetenzen || entry.kompetenz || '',
+    verknuepfung: entry.verknuepfung || '',
+    notizen: entry.notizen || ''
+  };
+
+  if (entry.supabase_id) {
+    payload.id = entry.supabase_id;
+  }
+
+  const { data, error } = await supabaseClient
+    .from('year_entries')
+    .upsert(payload)
+    .select()
+    .single();
+
+  if (error) {
+    console.log('saveYearEntryToSupabase error:', error);
+    toast('Jahreseintrag in Supabase fehlgeschlagen');
+    return false;
+  }
+
+  return data;
+}
 async function savePlanEntry(){
   const arr = editingPlanMode === 'year' ? yearEntries : monthEntries;
   const thema = $('#pthema').value.trim();
