@@ -1043,7 +1043,41 @@ async function importMonthJson(){
     alert('Ungültiges JSON für Monatsplanung.');
   }
 }
-function importYearJson(){const t=$('#importYearText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>yearEntries.push({id:Date.now()+Math.random(),fach:e.fach||'',thema:e.thema||'',von:e.von||'',bis:e.bis||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',notizen:e.notizen||''})); saveState(); closeModal('importYear'); renderYear(); toast('Jahresplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Jahresplan.')}}
+async function importYearJson(){
+  const t = $('#importYearText').value.trim();
+  if(!t) return toast('Bitte JSON einfügen');
+
+  try{
+    const arr = JSON.parse(t);
+
+    for (const e of arr) {
+      const entry = {
+        id: Date.now() + Math.random(),
+        fach: e.fach || '',
+        thema: e.thema || '',
+        von: e.von || '',
+        bis: e.bis || '',
+        kompetenzen: e.kompetenzen || e.kompetenz || '',
+        verknuepfung: e.verknuepfung || '',
+        notizen: e.notizen || ''
+      };
+
+      const savedRow = await saveYearEntryToSupabase(entry);
+      if (savedRow) {
+        entry.supabase_id = savedRow.id;
+      }
+
+      yearEntries.push(entry);
+    }
+
+    saveState();
+    closeModal('importYear');
+    renderYear();
+    toast('Jahresplan übernommen ✓');
+  }catch(e){
+    alert('Ungültiges JSON für Jahresplan.');
+  }
+}
 function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffset=0; renderWeek()}
 function changeTag(d){currentDay.setDate(currentDay.getDate()+d); while(isWeekend(currentDay)) currentDay.setDate(currentDay.getDate()+d); selectedSlot=null; renderTag(); saveState()} function goTodayDay(){currentDay=new Date(); currentDay.setHours(0,0,0,0); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}
 function changeMonth(d){const arr=schoolMonths(schoolYear); monthPos=Math.max(0,Math.min(arr.length-1,monthPos+d)); renderMonth(); saveState()}
