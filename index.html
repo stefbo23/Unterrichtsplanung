@@ -502,23 +502,79 @@ async function übernehmenInMonatsplanung(yearId){
   renderMonth();
   toast('In Monatsplanung übernommen ✓');
 }
-function renderYear(){ $('#yearLabel').textContent=`Schuljahr ${schoolYear}`; const grid=$('#yearGrid'); grid.innerHTML=''; schoolMonths(schoolYear).forEach(m=>{const card=document.createElement('div'); card.className='year-card'; const breaks=monthBreaks(m.year,m.month,schoolYear); const entries=yearEntries.filter(e=>e.von&&new Date(e.von).getFullYear()===m.year&&new Date(e.von).getMonth()===m.month); card.innerHTML=`<div class="year-head"><div>${MONTHS[m.month]} ${m.year}</div><div>${entries.length} Einträge</div></div>`; const body=document.createElement('div'); body.className='year-body'; breaks.forEach(b=>body.insertAdjacentHTML('beforeend',`<div class="break">🏖 ${b.name}</div>`)); entries.forEach(e=>{
-  const el=document.createElement('div');
-  el.className='entry';
-  el.style.borderLeftColor=SCOL[e.fach]||'var(--gray)';
-  el.innerHTML=`
-    <div class="entry-f" style="color:${SCOL[e.fach]||'var(--muted)'}">${SUBJECTS[e.fach]||e.fach}</div>
-    <div class="entry-t">${e.thema||''}</div>
-    ${e.verknuepfung ? `<div class="entry-m">🔗 ${e.verknuepfung}</div>` : ''}
-    <div style="margin-top:8px">
-      <button class="btn btn-outline btn-sm" onclick="event.stopPropagation(); übernehmenInMonatsplanung('${e.id}')">
-        In Monatsplanung übernehmen
-      </button>
-    </div>
-  `;
-  el.onclick=()=>openPlanModal('year',e.id,m.year,m.month);
-  body.appendChild(el)
-}); const add=document.createElement('button'); add.className='add'; add.textContent='+ Eintrag'; add.onclick=()=>openPlanModal('year',null,m.year,m.month); body.appendChild(add); card.appendChild(body); grid.appendChild(card)})}
+function renderYear(){
+  $('#yearLabel').textContent = `Schuljahr ${schoolYear}`;
+  const grid = $('#yearGrid');
+  grid.innerHTML = '';
+
+  schoolMonths(schoolYear).forEach(m => {
+    const card = document.createElement('div');
+    card.className = 'year-card';
+
+    const breaks = monthBreaks(m.year, m.month, schoolYear);
+    const entries = yearEntries.filter(e =>
+      e.von &&
+      new Date(e.von).getFullYear() === m.year &&
+      new Date(e.von).getMonth() === m.month
+    );
+
+    card.innerHTML = `
+      <div class="year-head">
+        <div>${MONTHS[m.month]} ${m.year}</div>
+        <div>${entries.length} Einträge</div>
+      </div>
+    `;
+
+    const body = document.createElement('div');
+    body.className = 'year-body';
+
+    breaks.forEach(b => {
+      body.insertAdjacentHTML('beforeend', `<div class="break">🏖 ${b.name}</div>`);
+    });
+
+    entries.forEach(e => {
+      const alreadyInMonth = monthEntries.some(me =>
+        String(me.source_year_id || '') === String(e.id || '') ||
+        (
+          e.supabase_id &&
+          String(me.source_year_supabase_id || '') === String(e.supabase_id)
+        )
+      );
+
+      const el = document.createElement('div');
+      el.className = 'entry';
+      el.style.borderLeftColor = SCOL[e.fach] || 'var(--gray)';
+      el.innerHTML = `
+        <div class="entry-f" style="color:${SCOL[e.fach] || 'var(--muted)'}">
+          ${SUBJECTS[e.fach] || e.fach}
+        </div>
+        <div class="entry-t">${e.thema || ''}</div>
+        ${e.verknuepfung ? `<div class="entry-m">🔗 ${e.verknuepfung}</div>` : ''}
+        <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">
+          <button
+            class="btn btn-outline btn-sm"
+            ${alreadyInMonth ? 'disabled style="opacity:.6;cursor:default"' : ''}
+            onclick="event.stopPropagation(); übernehmenInMonatsplanung('${e.id}')"
+          >
+            ${alreadyInMonth ? '✓ In Monatsplanung' : 'In Monatsplanung übernehmen'}
+          </button>
+        </div>
+      `;
+
+      el.onclick = () => openPlanModal('year', e.id, m.year, m.month);
+      body.appendChild(el);
+    });
+
+    const add = document.createElement('button');
+    add.className = 'add';
+    add.textContent = '+ Eintrag';
+    add.onclick = () => openPlanModal('year', null, m.year, m.month);
+    body.appendChild(add);
+
+    card.appendChild(body);
+    grid.appendChild(card);
+  });
+}
 function renderChildren(){const box=$('#kids'); box.innerHTML=''; children.forEach(c=>{const initials=(c.name||'?').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase(); const tags=(c.areas||[]).map(a=>`<span class="tagpill" style="background:${AREAS[a]||'#888'}">${a}</span>`).join(''); const el=document.createElement('div'); el.className='kid'; el.innerHTML=`<div class="avatar">${initials}</div><div><div style="font-weight:700">${c.name}</div><div style="margin-top:3px">${tags}</div></div>`; el.onclick=()=>showChild(c.id); box.appendChild(el)}); if(!children.length) $('#childDetail').innerHTML='<div class="detail-empty">Kind auswählen</div>'}
 function showChild(id){
   $$('.kid').forEach(function(x){x.classList.remove('on')});
