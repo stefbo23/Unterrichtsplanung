@@ -608,7 +608,50 @@ async function saveMonthEntryToSupabase(entry) {
 
   return data;
 }
-function savePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthEntries; const thema=$('#pthema').value.trim(); if(!thema) return toast('Bitte Thema eingeben'); const entry={id:editingPlanId||Date.now()+Math.random(),fach:$('#pfach').value,thema:thema,von:$('#pfrom').value,bis:$('#pto').value,kompetenz:$('#pkomp').value,verknuepfung:$('#pverk').value,notizen:$('#pnote').value}; if(editingPlanId){const i=arr.findIndex(x=>x.id===editingPlanId); if(i>=0) arr[i]=entry; else arr.push(entry)} else arr.push(entry); saveState(); closeModal('planModal'); renderMonth(); renderYear(); toast('Eintrag gespeichert ✓')}
+async function savePlanEntry(){
+  const arr = editingPlanMode === 'year' ? yearEntries : monthEntries;
+  const thema = $('#pthema').value.trim();
+  if(!thema) return toast('Bitte Thema eingeben');
+
+  const entry = {
+    id: editingPlanId || Date.now() + Math.random(),
+    fach: $('#pfach').value,
+    thema: thema,
+    von: $('#pfrom').value,
+    bis: $('#pto').value,
+    kompetenzen: $('#pkomp').value,
+    verknuepfung: $('#pverk').value,
+    notizen: $('#pnote').value
+  };
+
+  if (editingPlanMode === 'month') {
+    if (editingPlanId) {
+      const existing = monthEntries.find(x => x.id === editingPlanId);
+      if (existing && existing.supabase_id) {
+        entry.supabase_id = existing.supabase_id;
+      }
+    }
+
+    const savedRow = await saveMonthEntryToSupabase(entry);
+    if (!savedRow) return;
+
+    entry.supabase_id = savedRow.id;
+  }
+
+  if(editingPlanId){
+    const i = arr.findIndex(x => x.id === editingPlanId);
+    if(i >= 0) arr[i] = entry;
+    else arr.push(entry);
+  } else {
+    arr.push(entry);
+  }
+
+  saveState();
+  closeModal('planModal');
+  renderMonth();
+  renderYear();
+  toast('Eintrag gespeichert ✓');
+}
 function deletePlanEntry(){const arr=editingPlanMode==='year'?yearEntries:monthEntries; if(!editingPlanId) return; const i=arr.findIndex(x=>x.id===editingPlanId); if(i>=0) arr.splice(i,1); saveState(); closeModal('planModal'); renderMonth(); renderYear(); toast('Eintrag gelöscht')}
 function openChildModal(id=null){editingChildId=id; const c=id?children.find(x=>x.id==id):null; $('#childModal').classList.add('open'); $('#childTitle').textContent=c?'Kind bearbeiten':'Kind anlegen'; $('#cname').value=c?.name||''; $('#cclass').innerHTML=['1','2','3','4'].map(k=>`<option value="${k}">${k}. Klasse</option>`).join(''); $('#cclass').value=c?.class||$('#klasse').value; $('#cdesc').value=c?.desc||''; $('#cstrength').value=c?.strength||''; $('#cmeasure').value=c?.measure||'';
   // Lehrwerk-Chips rendern
