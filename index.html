@@ -659,13 +659,8 @@ function renderWeekFocusSummary(){
 }
 
 function clearWeekFocus(){
-  weekFocus = {
-    subjects: {},
-    common_focus: '',
-    extra_focus: '',
-    foerderfokus: '',
-    methodenwunsch: ''
-  };
+  weekFocus = emptyWeekFocus();
+  delete weekFocusByWeek[currentWeekKey()];
   saveState();
   renderWeekFocusSummary();
   toast('Wochenschwerpunkte gelöscht');
