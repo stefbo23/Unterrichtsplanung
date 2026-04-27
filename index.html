@@ -310,21 +310,22 @@ async function saveState(){
 
   if(!store.contexts) store.contexts = {};
 
-store.contexts[key] = {
-  lessons,
-  monthEntries,
-  yearEntries,
-  children,
-  selectedBooks,
-  hoursCfg,
-  monthPos,
-  weekFocus,
-  focus: $('#focus').value,
-  optMethods: $('#optMethods').checked,
-  optPhases: $('#optPhases').checked,
-  optGen: $('#optGen').checked,
-  currentDay: dateKey(currentDay)
-};
+  store.contexts[key] = {
+    lessons,
+    monthEntries,
+    yearEntries,
+    children,
+    selectedBooks,
+    hoursCfg,
+    monthPos,
+    weekFocus,
+    weekFocusByWeek,
+    focus: $('#focus').value,
+    optMethods: $('#optMethods').checked,
+    optPhases: $('#optPhases').checked,
+    optGen: $('#optGen').checked,
+    currentDay: dateKey(currentDay)
+  };
 
   store.lastSchoolYear = $('#schuljahr').value;
   store.lastKlasse = $('#klasse').value;
