@@ -1644,15 +1644,27 @@ function copyYearPrompt(){
 
 Rahmen:
 - Lehrwerke: ${activeBooks()}
-- Über alle relevanten Fächer verteilt
-- Jahreszeitliche Themen berücksichtigen
-- Fächerübergreifende Verknüpfungen müssen sichtbar sein
+- Plane das Schuljahr so, dass in jedem Monat mehrere zentrale Fächer vorkommen.
+- Besonders Deutsch, Mathematik, Sachunterricht, Englisch, Musik und Bildnerische Erziehung sollen über das Jahr hinweg sinnvoll und regelmäßig vorkommen.
+- Die Planung soll pro Monat ausgewogen sein und nicht nur einzelne Fächer enthalten.
+- Jahreszeitliche Themen berücksichtigen.
+- Fächerübergreifende Verknüpfungen müssen sichtbar sein.
 - Die Einträge sollen klar, altersgerecht und praxisnah formuliert sein.
 - Kompetenzen nicht nur knapp nennen, sondern konkret formulieren.
 - Notizen dürfen hilfreiche Hinweise für die Umsetzung enthalten.
+- Verwende nur echte Unterrichtsfächer aus der Volksschule.
+- "Lesen" ist kein eigenes Fach, sondern gehört zu Deutsch.
+- "Schreiben" ist kein eigenes Fach, sondern gehört zu Deutsch.
+- "Rechtschreibung" ist kein eigenes Fach, sondern gehört zu Deutsch.
+- "Rechnen" ist kein eigenes Fach, sondern gehört zu Mathematik.
 ${extraPrompt()}
 
-Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
+WICHTIG:
+- Antworte ausschließlich mit einem gültigen JSON-Array.
+- Verwende bei "fach" nur diese Werte:
+  "deutsch", "mathe", "sachunterricht", "englisch", "musik", "be", "werken", "sport", "religion"
+- Erfinde keine zusätzlichen Fachnamen.
+- Die Antwort muss direkt mit [ beginnen und mit ] enden.
 
 [
   {
