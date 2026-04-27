@@ -544,7 +544,7 @@ function renderWeekFocusEditor(){
   const entries = getCurrentMonthEntriesForWeekFocus();
 
   if(!entries.length){
-    box.innerHTML = '<div style="font-size:.8rem;color:var(--muted)">Keine Monatseinträge im aktuell gewählten Monat vorhanden.</div>';
+    box.innerHTML = '<div style="font-size:.8rem;color:var(--muted)">Keine Monatseinträge für diese Woche vorhanden.</div>';
     return;
   }
 
@@ -556,23 +556,32 @@ function renderWeekFocusEditor(){
   });
 
   box.innerHTML = Object.entries(grouped).map(([fach, list]) => {
-    const options = list.map(e => {
-      const selected = weekFocus.subjects[fach] && String(weekFocus.subjects[fach].month_entry_id) === String(e.id);
-      return `<option value="${e.id}" ${selected ? 'selected' : ''}>${e.thema || '(ohne Thema)'}</option>`;
+    const items = list.map(e => {
+      const selectedList = weekFocus.subjects[fach] || [];
+      const checked = selectedList.some(x => String(x.month_entry_id) === String(e.id));
+
+      return `
+        <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:6px;cursor:pointer">
+          <input type="checkbox" data-weekfocus-fach="${fach}" value="${e.id}" ${checked ? 'checked' : ''} style="margin-top:3px" />
+          <div>
+            <div style="font-weight:700;font-size:.82rem">${e.thema || '(ohne Thema)'}</div>
+            ${e.kompetenzen || e.kompetenz ? `<div style="font-size:.74rem;color:var(--muted);margin-top:2px">${e.kompetenzen || e.kompetenz}</div>` : ''}
+            ${e.von || e.bis ? `<div style="font-size:.7rem;color:var(--muted);margin-top:2px">${e.von || '-'} bis ${e.bis || '-'}</div>` : ''}
+          </div>
+        </label>
+      `;
     }).join('');
 
     return `
-      <div class="field" style="margin-bottom:10px">
+      <div class="field" style="margin-bottom:12px">
         <label>${SUBJECTS[fach] || fach}</label>
-        <select data-weekfocus-fach="${fach}">
-          <option value="">– kein Schwerpunkt –</option>
-          ${options}
-        </select>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${items}
+        </div>
       </div>
     `;
   }).join('');
 }
-
 function openWeekFocusModal(){
   $('#wfCommonFocus').value = weekFocus.common_focus || '';
   $('#wfExtraFocus').value = weekFocus.extra_focus || '';
@@ -587,15 +596,18 @@ function saveWeekFocus(){
   const subjects = {};
   const entries = getCurrentMonthEntriesForWeekFocus();
 
-  $$('[data-weekfocus-fach]').forEach(sel => {
-    const fach = sel.dataset.weekfocusFach;
-    const id = sel.value;
-    if(!id) return;
+  $$('[data-weekfocus-fach]').forEach(input => {
+    if(!input.checked) return;
+
+    const fach = input.dataset.weekfocusFach;
+    const id = input.value;
 
     const entry = entries.find(e => String(e.id) === String(id));
     if(!entry) return;
 
-    subjects[fach] = {
+    if(!subjects[fach]) subjects[fach] = [];
+
+    subjects[fach].push({
       month_entry_id: entry.id,
       month_entry_supabase_id: entry.supabase_id || null,
       fach: entry.fach || '',
@@ -603,7 +615,7 @@ function saveWeekFocus(){
       kompetenzen: entry.kompetenzen || entry.kompetenz || '',
       verknuepfung: entry.verknuepfung || '',
       notizen: entry.notizen || ''
-    };
+    });
   });
 
   weekFocus = {
@@ -639,8 +651,9 @@ function renderWeekFocusSummary(){
     html += `<div><b>Gemeinsamer Wochenfokus:</b> ${weekFocus.common_focus}</div>`;
   }
 
-  Object.entries(weekFocus.subjects || {}).forEach(([fach, data]) => {
-    html += `<div><b>${SUBJECTS[fach] || fach}:</b> ${data.thema || '-'}</div>`;
+  Object.entries(weekFocus.subjects || {}).forEach(([fach, list]) => {
+    const themen = (list || []).map(x => x.thema || '-').join(' · ');
+    html += `<div><b>${SUBJECTS[fach] || fach}:</b> ${themen}</div>`;
   });
 
   if(weekFocus.extra_focus){
@@ -1529,12 +1542,12 @@ function copyWochePrompt(){
   const weekFocusText = hasWeekFocusSubjects
     ? `
 Ausgewählte Wochenschwerpunkte aus der Monatsplanung:
-${Object.entries(weekFocus.subjects).map(([fach, data]) => `
-- ${SUBJECTS[fach] || fach}
-  Thema: ${data.thema || '-'}
-  Kompetenzen: ${data.kompetenzen || '-'}
-  Verknüpfung: ${data.verknuepfung || '-'}
-  Notizen: ${data.notizen || '-'}
+${Object.entries(weekFocus.subjects).map(([fach, list]) => `
+- ${SUBJECTS[fach] || fach}:
+${(list || []).map(data => `  • Thema: ${data.thema || '-'}
+    Kompetenzen: ${data.kompetenzen || '-'}
+    Verknüpfung: ${data.verknuepfung || '-'}
+    Notizen: ${data.notizen || '-'}`).join('\n')}
 `).join('\n')}
 `
     : '';
@@ -1700,7 +1713,61 @@ function copyChildPrompt(id){
 }
 function openImport(id){$('#'+id).classList.add('open')} function toggleImport(id){const el=$('#'+id); el.style.display=el.style.display==='block'?'none':'block'}
 function importDayJson(){const t=$('#importDayText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>{let stunde=Number(e.stunde); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; lessons[`${dateKey(currentDay)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importDay'); renderWeek(); renderTag(); toast('Tagesplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Tagesplan.')}}
-function importWeekJson(){const t=$('#importWeekText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); const mon=getMonday(weekOffset); arr.forEach(e=>{let tag=e.tag; let stunde=Number(e.stunde); if(typeof tag==='string') tag=DAYS.indexOf(tag); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(tag)||tag<0||tag>4) return; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; const d=new Date(mon.getTime()+tag*86400000); lessons[`${dateKey(d)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importWeek'); renderWeek(); renderTag(); toast('Wochenplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Wochenplan.')}}
+function importWeekJson(){
+  let t = $('#importWeekText').value.trim();
+  if(!t) return toast('Bitte JSON einfügen');
+
+  try{
+    t = t.replace(/^```json\s*/i, '');
+    t = t.replace(/^```\s*/i, '');
+    t = t.replace(/\s*```$/i, '');
+    t = t.trim();
+
+    const start = t.indexOf('[');
+    const end = t.lastIndexOf(']');
+    if(start !== -1 && end !== -1 && end > start){
+      t = t.slice(start, end + 1);
+    }
+
+    const arr = JSON.parse(t);
+    const mon = getMonday(weekOffset);
+
+    arr.forEach(e=>{
+      let tag = e.tag;
+      let stunde = Number(e.stunde);
+
+      if(typeof tag === 'string') tag = DAYS.indexOf(tag);
+      if(stunde >= 1 && stunde <= 6) stunde = stunde - 1;
+
+      if(Number.isNaN(tag) || tag < 0 || tag > 4) return;
+      if(Number.isNaN(stunde) || stunde < 0 || stunde > 5) return;
+
+      const d = new Date(mon.getTime() + tag * 86400000);
+
+      lessons[`${dateKey(d)}_${stunde}`] = {
+        fach: e.fach || '',
+        thema: e.thema || '',
+        kompetenz: e.kompetenz || '',
+        verknuepfung: e.verknuepfung || '',
+        mindestziel: e.mindestziel || '',
+        diffUnten: e.differenzierung_unten || '',
+        diffOben: e.differenzierung_oben || '',
+        sozialformen: Array.isArray(e.sozialformen) ? e.sozialformen.join(', ') : (e.sozialformen || ''),
+        methoden: e.methoden || [],
+        phasen: e.phasen || [],
+        material: e.material || ''
+      };
+    });
+
+    saveState();
+    closeModal('importWeek');
+    renderWeek();
+    renderTag();
+    toast('Wochenplan übernommen ✓');
+  }catch(e){
+    alert('Ungültiges JSON für Wochenplan.');
+  }
+}
 async function importMonthJson(){
   const t = $('#importMonthText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
