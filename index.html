@@ -52,7 +52,14 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 </header>
 <div class="tabs" id="tabs"></div>
 <main>
-  <div class="view on" id="view-woche"><div class="note">Ohne API: <b>Prompt kopieren</b> → in ChatGPT oder Claude einfügen → <b>nur JSON</b> zurückkopieren → hier <b>JSON einfügen</b>.</div><div id="weekContextBox" style="display:none;margin-bottom:14px;"></div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← zurück</button><span class="label" id="weekLabel"></span><button class="btn btn-outline btn-sm" onclick="changeWeek(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goToday()">Heute</button><button class="btn btn-green btn-sm" onclick="copyWochePrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importWeek')">📥 JSON einfügen</button></div><div class="two"><div><div class="week" id="weekGrid"></div></div><div class="sidebar"><div class="title">📋 Lehrwerk-Einheiten</div><p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Klick auf eine Einheit → im Stundenfenster übernehmen</p><div id="sidebar"></div></div></div></div>
+  <div class="view on" id="view-woche"><div class="note">Ohne API: <b>Prompt kopieren</b> → in ChatGPT oder Claude einfügen → <b>nur JSON</b> zurückkopieren → hier <b>JSON einfügen</b>.</div><div id="weekContextBox" style="display:none;margin-bottom:14px;"></div><div class="card" id="weekFocusBox" style="margin-bottom:14px;">
+  <div class="title">Wochenschwerpunkte</div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+    <button class="btn btn-outline btn-sm" onclick="openWeekFocusModal()">Wochenschwerpunkte bearbeiten</button>
+    <button class="btn btn-outline btn-sm" onclick="clearWeekFocus()">Wochenschwerpunkte leeren</button>
+  </div>
+  <div id="weekFocusSummary" style="font-size:.82rem;color:var(--muted)">Noch keine Wochenschwerpunkte gewählt.</div>
+</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← zurück</button><span class="label" id="weekLabel"></span><button class="btn btn-outline btn-sm" onclick="changeWeek(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goToday()">Heute</button><button class="btn btn-green btn-sm" onclick="copyWochePrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importWeek')">📥 JSON einfügen</button></div><div class="two"><div><div class="week" id="weekGrid"></div></div><div class="sidebar"><div class="title">📋 Lehrwerk-Einheiten</div><p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Klick auf eine Einheit → im Stundenfenster übernehmen</p><div id="sidebar"></div></div></div></div>
   <div class="view" id="view-tag"><div class="note">Für den Tagesplan: Prompt kopieren, in ChatGPT oder Claude einfügen, <b>nur JSON</b> zurückkopieren und hier übernehmen.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeTag(-1)">← zurück</button><span class="label" id="dayLabel"></span><button class="btn btn-outline btn-sm" onclick="changeTag(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goTodayDay()">Heute</button><input type="date" id="dayPicker" /><button class="btn btn-green btn-sm" onclick="copyDayPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importDay')">📥 JSON einfügen</button></div><div class="tag"><div class="line" id="dayLine"></div><div class="detail" id="dayDetail"></div></div></div>
   <div class="view" id="view-monat"><div class="note">Für die Monatsplanung kopierst du den Prompt für den aktuell gewählten Monat und fügst das JSON hier ein.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">← zurück</button><span class="label" id="monthLabel"></span><button class="btn btn-outline btn-sm" onclick="changeMonth(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyMonthPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importMonth')">📥 JSON einfügen</button><button class="btn btn-outline btn-sm" onclick="openPlanModal('month')">+ Eintrag</button></div><div class="month-layout"><div class="months" id="monthList"></div><div class="month-pane" id="monthPane"></div></div></div>
   <div class="view" id="view-jahr"><div class="note">Für den Jahresplan kopierst du den Prompt, lässt dir von ChatGPT oder Claude nur JSON ausgeben und fügst das JSON hier ein.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(-1)">← zurück</button><span class="label" id="yearLabel"></span><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyYearPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importYear')">📥 JSON einfügen</button></div><div class="year-grid" id="yearGrid"></div></div>
@@ -67,6 +74,42 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 <div class="modal-wrap" id="importMonth"><div class="modal"><div class="modal-title">Monatsplanung JSON einfügen</div><div class="field"><textarea id="importMonthText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importMonth')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importMonthJson()">Übernehmen</button></div></div></div>
 <div class="modal-wrap" id="importYear"><div class="modal"><div class="modal-title">Jahresplan JSON einfügen</div><div class="field"><textarea id="importYearText"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importYear')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importYearJson()">Übernehmen</button></div></div></div>
 <div class="modal-wrap" id="importChild"><div class="modal"><div class="modal-title">Förderplan JSON einfügen</div><div class="modal-sub">JSON aus Claude hier einfügen</div><div class="field"><textarea id="importChildText" style="min-height:220px"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('importChild')">Abbrechen</button><button class="btn btn-green btn-sm" onclick="importChildJson()">Übernehmen</button></div></div></div>
+<div class="modal-wrap" id="weekFocusModal">
+  <div class="modal">
+    <div class="modal-title">Wochenschwerpunkte festlegen</div>
+    <div class="modal-sub">Entweder Themen aus der Monatsplanung wählen oder eigene Schwerpunkte eintragen.</div>
+
+    <div class="field">
+      <label>Gemeinsamer Wochenfokus</label>
+      <input id="wfCommonFocus" placeholder="z. B. Tiere, Frühling, Formen in der Umwelt" />
+    </div>
+
+    <div class="field">
+      <label>Eigene Zusatzschwerpunkte</label>
+      <textarea id="wfExtraFocus" placeholder="Was ist diese Woche zusätzlich wichtig?"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Förderfokus</label>
+      <textarea id="wfFoerderfokus" placeholder="z. B. Konzentration, Silbenlesen, Zahlzerlegung"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Methodenwunsch</label>
+      <textarea id="wfMethodenwunsch" placeholder="z. B. mehr Bewegung, Stationen, Partnerarbeit"></textarea>
+    </div>
+
+    <div class="field">
+      <label>Fächer aus Monatsplanung für diese Woche wählen</label>
+      <div id="weekFocusSubjects"></div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-outline btn-sm" onclick="closeModal('weekFocusModal')">Abbrechen</button>
+      <button class="btn btn-green btn-sm" onclick="saveWeekFocus()">Übernehmen</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>  
 <script>
@@ -214,6 +257,13 @@ const MONTHS=['Jänner','Februar','März','April','Mai','Juni','Juli','August','
 let lessons={}, monthEntries=[], yearEntries=[], children=[], selectedBooks={'Flex und Flora':true,'Flex und Flo':true,'Sally':true}, hoursCfg={deutsch:5,mathe:5,sachunterricht:3,englisch:2,musik:1,be:1,werken:1,sport:2,religion:2};
 let weekOffset=0, currentDay=new Date(), schoolYear='2025/26', monthPos=0, editingLessonKey=null, editingPlanMode='year', editingPlanId=null, editingChildId=null, selectedMethods=[], phaseData=[], selectedSlot=null;
 let activeWeekContext = null;
+let weekFocus = {
+  subjects: {},
+  common_focus: '',
+  extra_focus: '',
+  foerderfokus: '',
+  methodenwunsch: ''
+};
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500)}
 function pad(n){return String(n).padStart(2,'0')} function dateKey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
@@ -255,20 +305,21 @@ async function saveState(){
 
   if(!store.contexts) store.contexts = {};
 
-  store.contexts[key] = {
-    lessons,
-    monthEntries,
-    yearEntries,
-    children,
-    selectedBooks,
-    hoursCfg,
-    monthPos,
-    focus: $('#focus').value,
-    optMethods: $('#optMethods').checked,
-    optPhases: $('#optPhases').checked,
-    optGen: $('#optGen').checked,
-    currentDay: dateKey(currentDay)
-  };
+store.contexts[key] = {
+  lessons,
+  monthEntries,
+  yearEntries,
+  children,
+  selectedBooks,
+  hoursCfg,
+  monthPos,
+  weekFocus,
+  focus: $('#focus').value,
+  optMethods: $('#optMethods').checked,
+  optPhases: $('#optPhases').checked,
+  optGen: $('#optGen').checked,
+  currentDay: dateKey(currentDay)
+};
 
   store.lastSchoolYear = $('#schuljahr').value;
   store.lastKlasse = $('#klasse').value;
@@ -296,6 +347,7 @@ function loadState(){
       selectedBooks: store.selectedBooks || selectedBooks,
       hoursCfg: store.hoursCfg || hoursCfg,
       monthPos: store.monthPos || 0,
+      weekFocus: store.weekFocus || { subjects:{}, common_focus:'', extra_focus:'', foerderfokus:'', methodenwunsch:'' },
       focus: store.focus || '',
       optMethods: store.optMethods !== false,
       optPhases: store.optPhases !== false,
@@ -314,6 +366,7 @@ function loadState(){
   selectedBooks = d.selectedBooks || {'Flex und Flora':true,'Flex und Flo':true,'Sally':true};
   hoursCfg = d.hoursCfg || {deutsch:5,mathe:5,sachunterricht:3,englisch:2,musik:1,be:1,werken:1,sport:2,religion:2};
   monthPos = d.monthPos || 0;
+  weekFocus = d.weekFocus || { subjects:{}, common_focus:'', extra_focus:'', foerderfokus:'', methodenwunsch:'' };
 
   $('#focus').value = d.focus || '';
   $('#optMethods').checked = d.optMethods !== false;
@@ -480,6 +533,42 @@ function renderWeekContext(){
       </div>
     </div>
   `;
+}
+function renderWeekFocusSummary(){
+  const box = $('#weekFocusSummary');
+  if(!box) return;
+
+  const hasSubjects = weekFocus.subjects && Object.keys(weekFocus.subjects).length > 0;
+  const hasExtra = weekFocus.common_focus || weekFocus.extra_focus || weekFocus.foerderfokus || weekFocus.methodenwunsch;
+
+  if(!hasSubjects && !hasExtra){
+    box.innerHTML = 'Noch keine Wochenschwerpunkte gewählt.';
+    return;
+  }
+
+  let html = '';
+
+  if(weekFocus.common_focus){
+    html += `<div><b>Gemeinsamer Wochenfokus:</b> ${weekFocus.common_focus}</div>`;
+  }
+
+  Object.entries(weekFocus.subjects || {}).forEach(([fach, data]) => {
+    html += `<div><b>${SUBJECTS[fach] || fach}:</b> ${data.thema || '-'}</div>`;
+  });
+
+  if(weekFocus.extra_focus){
+    html += `<div><b>Zusatzschwerpunkte:</b> ${weekFocus.extra_focus}</div>`;
+  }
+
+  if(weekFocus.foerderfokus){
+    html += `<div><b>Förderfokus:</b> ${weekFocus.foerderfokus}</div>`;
+  }
+
+  if(weekFocus.methodenwunsch){
+    html += `<div><b>Methodenwunsch:</b> ${weekFocus.methodenwunsch}</div>`;
+  }
+
+  box.innerHTML = html;
 }
 function renderWeek(){
   renderWeekContext();
