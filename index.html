@@ -534,6 +534,98 @@ function renderWeekContext(){
     </div>
   `;
 }
+function getCurrentMonthEntriesForWeekFocus(){
+  const cur = currentMonthObj();
+  return monthEntries.filter(e =>
+    e.von &&
+    new Date(e.von).getFullYear() === cur.year &&
+    new Date(e.von).getMonth() === cur.month
+  );
+}
+
+function renderWeekFocusEditor(){
+  const box = $('#weekFocusSubjects');
+  if(!box) return;
+
+  const entries = getCurrentMonthEntriesForWeekFocus();
+
+  if(!entries.length){
+    box.innerHTML = '<div style="font-size:.8rem;color:var(--muted)">Keine Monatseinträge im aktuell gewählten Monat vorhanden.</div>';
+    return;
+  }
+
+  const grouped = {};
+  entries.forEach(e => {
+    const fach = e.fach || 'sonstiges';
+    if(!grouped[fach]) grouped[fach] = [];
+    grouped[fach].push(e);
+  });
+
+  box.innerHTML = Object.entries(grouped).map(([fach, list]) => {
+    const options = list.map(e => {
+      const selected = weekFocus.subjects[fach] && String(weekFocus.subjects[fach].month_entry_id) === String(e.id);
+      return `<option value="${e.id}" ${selected ? 'selected' : ''}>${e.thema || '(ohne Thema)'}</option>`;
+    }).join('');
+
+    return `
+      <div class="field" style="margin-bottom:10px">
+        <label>${SUBJECTS[fach] || fach}</label>
+        <select data-weekfocus-fach="${fach}">
+          <option value="">– kein Schwerpunkt –</option>
+          ${options}
+        </select>
+      </div>
+    `;
+  }).join('');
+}
+
+function openWeekFocusModal(){
+  $('#wfCommonFocus').value = weekFocus.common_focus || '';
+  $('#wfExtraFocus').value = weekFocus.extra_focus || '';
+  $('#wfFoerderfokus').value = weekFocus.foerderfokus || '';
+  $('#wfMethodenwunsch').value = weekFocus.methodenwunsch || '';
+
+  renderWeekFocusEditor();
+  $('#weekFocusModal').classList.add('open');
+}
+
+function saveWeekFocus(){
+  const subjects = {};
+  const entries = getCurrentMonthEntriesForWeekFocus();
+
+  $$('[data-weekfocus-fach]').forEach(sel => {
+    const fach = sel.dataset.weekfocusFach;
+    const id = sel.value;
+    if(!id) return;
+
+    const entry = entries.find(e => String(e.id) === String(id));
+    if(!entry) return;
+
+    subjects[fach] = {
+      month_entry_id: entry.id,
+      month_entry_supabase_id: entry.supabase_id || null,
+      fach: entry.fach || '',
+      thema: entry.thema || '',
+      kompetenzen: entry.kompetenzen || entry.kompetenz || '',
+      verknuepfung: entry.verknuepfung || '',
+      notizen: entry.notizen || ''
+    };
+  });
+
+  weekFocus = {
+    subjects,
+    common_focus: $('#wfCommonFocus').value || '',
+    extra_focus: $('#wfExtraFocus').value || '',
+    foerderfokus: $('#wfFoerderfokus').value || '',
+    methodenwunsch: $('#wfMethodenwunsch').value || ''
+  };
+
+  saveState();
+  renderWeekFocusSummary();
+  closeModal('weekFocusModal');
+  toast('Wochenschwerpunkte übernommen ✓');
+}
+
 function renderWeekFocusSummary(){
   const box = $('#weekFocusSummary');
   if(!box) return;
@@ -570,8 +662,22 @@ function renderWeekFocusSummary(){
 
   box.innerHTML = html;
 }
+
+function clearWeekFocus(){
+  weekFocus = {
+    subjects: {},
+    common_focus: '',
+    extra_focus: '',
+    foerderfokus: '',
+    methodenwunsch: ''
+  };
+  saveState();
+  renderWeekFocusSummary();
+  toast('Wochenschwerpunkte gelöscht');
+}
 function renderWeek(){
   renderWeekContext();
+  renderWeekFocusSummary();
 
   const mon = getMonday(weekOffset);
   $('#weekLabel').textContent = `KW ${getKW(mon)} · ${mon.getFullYear()}`;
