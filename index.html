@@ -614,12 +614,13 @@ function saveWeekFocus(){
     methodenwunsch: $('#wfMethodenwunsch').value || ''
   };
 
+  weekFocusByWeek[currentWeekKey()] = JSON.parse(JSON.stringify(weekFocus));
+
   saveState();
   renderWeekFocusSummary();
   closeModal('weekFocusModal');
   toast('Wochenschwerpunkte übernommen ✓');
 }
-
 function renderWeekFocusSummary(){
   const box = $('#weekFocusSummary');
   if(!box) return;
@@ -669,7 +670,11 @@ function clearWeekFocus(){
   renderWeekFocusSummary();
   toast('Wochenschwerpunkte gelöscht');
 }
-function renderWeek(){
+function currentWeekKey(){
+  const mon = getMonday(weekOffset);
+  return dateKey(mon);
+}
+  function renderWeek(){
   renderWeekContext();
   renderWeekFocusSummary();
 
