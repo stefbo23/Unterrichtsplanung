@@ -1529,17 +1529,28 @@ function copyWochePrompt(){
   const klasse = $('#klasse').value || '1';
   const mon = getMonday(weekOffset);
 
-  const monthContextText = activeWeekContext ? `
-Monatskontext:
-- Fach: ${activeWeekContext.fach}
-- Thema: ${activeWeekContext.thema}
-- Zeitraum: ${activeWeekContext.von} bis ${activeWeekContext.bis}
-- Kompetenzen: ${activeWeekContext.kompetenzen}
-- Verknüpfung: ${activeWeekContext.verknuepfung}
-- Notizen: ${activeWeekContext.notizen}
+  const hasWeekFocusSubjects = weekFocus.subjects && Object.keys(weekFocus.subjects).length > 0;
 
-Nutze diesen Monatskontext als Grundlage für die Wochenplanung. Die Woche soll inhaltlich klar aus diesem Monatseintrag weitergedacht werden.
-` : '';
+  const weekFocusText = hasWeekFocusSubjects
+    ? `
+Ausgewählte Wochenschwerpunkte aus der Monatsplanung:
+${Object.entries(weekFocus.subjects).map(([fach, data]) => `
+- ${SUBJECTS[fach] || fach}
+  Thema: ${data.thema || '-'}
+  Kompetenzen: ${data.kompetenzen || '-'}
+  Verknüpfung: ${data.verknuepfung || '-'}
+  Notizen: ${data.notizen || '-'}
+`).join('\n')}
+`
+    : '';
+
+  const extraWeekFocusText = `
+Zusätzliche Vorgaben der Lehrkraft:
+- Gemeinsamer Wochenfokus: ${weekFocus.common_focus || '-'}
+- Zusatzschwerpunkte: ${weekFocus.extra_focus || '-'}
+- Förderfokus: ${weekFocus.foerderfokus || '-'}
+- Methodenwunsch: ${weekFocus.methodenwunsch || '-'}
+`;
 
   copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.
 
@@ -1557,9 +1568,12 @@ Rahmen:
 - Methoden müssen konkret und praktikabel sein.
 - Differenzierung muss wirklich umsetzbar sein, sowohl für Kinder mit Unterstützungsbedarf als auch für Kinder, die schon weiter sind.
 - Fächerübergreifende Verknüpfungen müssen sichtbar sein.
+- Stelle fächerübergreifende Bezüge zwischen den ausgewählten Fächern und Themen her, sofern dies inhaltlich sinnvoll möglich ist.
+- Vermeide künstliche Verknüpfungen dort, wo keine sinnvolle Verbindung besteht.
 - Sinnvolle Fächerverteilung über die Woche hinweg.
 - Ohne Handy.
-${monthContextText}
+${weekFocusText}
+${extraWeekFocusText}
 ${extraPrompt()}
 
 Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
