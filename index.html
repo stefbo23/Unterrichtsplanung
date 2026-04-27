@@ -556,28 +556,21 @@ function renderWeekFocusEditor(){
   });
 
   box.innerHTML = Object.entries(grouped).map(([fach, list]) => {
-    const items = list.map(e => {
-      const selectedList = weekFocus.subjects[fach] || [];
-      const checked = selectedList.some(x => String(x.month_entry_id) === String(e.id));
+    const currentSelected = weekFocus.subjects[fach]?.month_entry_id || '';
 
-      return `
-        <label style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;margin-bottom:6px;cursor:pointer">
-          <input type="checkbox" data-weekfocus-fach="${fach}" value="${e.id}" ${checked ? 'checked' : ''} style="margin-top:3px" />
-          <div>
-            <div style="font-weight:700;font-size:.82rem">${e.thema || '(ohne Thema)'}</div>
-            ${e.kompetenzen || e.kompetenz ? `<div style="font-size:.74rem;color:var(--muted);margin-top:2px">${e.kompetenzen || e.kompetenz}</div>` : ''}
-            ${e.von || e.bis ? `<div style="font-size:.7rem;color:var(--muted);margin-top:2px">${e.von || '-'} bis ${e.bis || '-'}</div>` : ''}
-          </div>
-        </label>
-      `;
-    }).join('');
+    const options = list.map(e => `
+      <option value="${e.id}" ${String(currentSelected) === String(e.id) ? 'selected' : ''}>
+        ${e.thema || '(ohne Thema)'}
+      </option>
+    `).join('');
 
     return `
       <div class="field" style="margin-bottom:12px">
         <label>${SUBJECTS[fach] || fach}</label>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          ${items}
-        </div>
+        <select data-weekfocus-fach="${fach}">
+          <option value="">– kein Schwerpunkt –</option>
+          ${options}
+        </select>
       </div>
     `;
   }).join('');
@@ -596,18 +589,15 @@ function saveWeekFocus(){
   const subjects = {};
   const entries = getCurrentMonthEntriesForWeekFocus();
 
-  $$('[data-weekfocus-fach]').forEach(input => {
-    if(!input.checked) return;
-
-    const fach = input.dataset.weekfocusFach;
-    const id = input.value;
+  $$('[data-weekfocus-fach]').forEach(sel => {
+    const fach = sel.dataset.weekfocusFach;
+    const id = sel.value;
+    if(!id) return;
 
     const entry = entries.find(e => String(e.id) === String(id));
     if(!entry) return;
 
-    if(!subjects[fach]) subjects[fach] = [];
-
-    subjects[fach].push({
+    subjects[fach] = {
       month_entry_id: entry.id,
       month_entry_supabase_id: entry.supabase_id || null,
       fach: entry.fach || '',
@@ -615,7 +605,7 @@ function saveWeekFocus(){
       kompetenzen: entry.kompetenzen || entry.kompetenz || '',
       verknuepfung: entry.verknuepfung || '',
       notizen: entry.notizen || ''
-    });
+    };
   });
 
   weekFocus = {
@@ -651,9 +641,8 @@ function renderWeekFocusSummary(){
     html += `<div><b>Gemeinsamer Wochenfokus:</b> ${weekFocus.common_focus}</div>`;
   }
 
-  Object.entries(weekFocus.subjects || {}).forEach(([fach, list]) => {
-    const themen = (list || []).map(x => x.thema || '-').join(' · ');
-    html += `<div><b>${SUBJECTS[fach] || fach}:</b> ${themen}</div>`;
+  Object.entries(weekFocus.subjects || {}).forEach(([fach, data]) => {
+    html += `<div><b>${SUBJECTS[fach] || fach}:</b> ${data.thema || '-'}</div>`;
   });
 
   if(weekFocus.extra_focus){
@@ -670,7 +659,6 @@ function renderWeekFocusSummary(){
 
   box.innerHTML = html;
 }
-
 function clearWeekFocus(){
   weekFocus = emptyWeekFocus();
   delete weekFocusByWeek[currentWeekKey()];
@@ -1542,12 +1530,12 @@ function copyWochePrompt(){
   const weekFocusText = hasWeekFocusSubjects
     ? `
 Ausgewählte Wochenschwerpunkte aus der Monatsplanung:
-${Object.entries(weekFocus.subjects).map(([fach, list]) => `
-- ${SUBJECTS[fach] || fach}:
-${(list || []).map(data => `  • Thema: ${data.thema || '-'}
-    Kompetenzen: ${data.kompetenzen || '-'}
-    Verknüpfung: ${data.verknuepfung || '-'}
-    Notizen: ${data.notizen || '-'}`).join('\n')}
+${Object.entries(weekFocus.subjects).map(([fach, data]) => `
+- ${SUBJECTS[fach] || fach}
+  Thema: ${data.thema || '-'}
+  Kompetenzen: ${data.kompetenzen || '-'}
+  Verknüpfung: ${data.verknuepfung || '-'}
+  Notizen: ${data.notizen || '-'}
 `).join('\n')}
 `
     : '';
