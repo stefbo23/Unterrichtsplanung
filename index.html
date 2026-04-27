@@ -257,13 +257,18 @@ const MONTHS=['Jänner','Februar','März','April','Mai','Juni','Juli','August','
 let lessons={}, monthEntries=[], yearEntries=[], children=[], selectedBooks={'Flex und Flora':true,'Flex und Flo':true,'Sally':true}, hoursCfg={deutsch:5,mathe:5,sachunterricht:3,englisch:2,musik:1,be:1,werken:1,sport:2,religion:2};
 let weekOffset=0, currentDay=new Date(), schoolYear='2025/26', monthPos=0, editingLessonKey=null, editingPlanMode='year', editingPlanId=null, editingChildId=null, selectedMethods=[], phaseData=[], selectedSlot=null;
 let activeWeekContext = null;
-let weekFocus = {
-  subjects: {},
-  common_focus: '',
-  extra_focus: '',
-  foerderfokus: '',
-  methodenwunsch: ''
-};
+function emptyWeekFocus(){
+  return {
+    subjects: {},
+    common_focus: '',
+    extra_focus: '',
+    foerderfokus: '',
+    methodenwunsch: ''
+  };
+}
+
+let weekFocus = emptyWeekFocus();
+let weekFocusByWeek = {};
 const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
 function toast(msg){const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500)}
 function pad(n){return String(n).padStart(2,'0')} function dateKey(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`}
