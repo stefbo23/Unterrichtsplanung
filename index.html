@@ -512,37 +512,23 @@ function insertUnit(fach,book,unit){if(!$('#lessonModal').classList.contains('op
 function renderWeekContext(){
   const box = $('#weekContextBox');
   if(!box) return;
-
-  if(!activeWeekContext){
-    box.style.display = 'none';
-    box.innerHTML = '';
-    return;
-  }
-
-  box.style.display = 'block';
-  box.innerHTML = `
-    <div class="card" style="margin-bottom:0">
-      <div class="title">Aktiver Wochenkontext</div>
-      <div style="font-size:.82rem;line-height:1.5">
-        <div><b>Fach:</b> ${SUBJECTS[activeWeekContext.fach] || activeWeekContext.fach || '-'}</div>
-        <div><b>Thema:</b> ${activeWeekContext.thema || '-'}</div>
-        <div><b>Zeitraum:</b> ${activeWeekContext.von || '-'} bis ${activeWeekContext.bis || '-'}</div>
-        ${activeWeekContext.kompetenzen ? `<div><b>Kompetenzen:</b> ${activeWeekContext.kompetenzen}</div>` : ''}
-        ${activeWeekContext.verknuepfung ? `<div><b>Verknüpfung:</b> ${activeWeekContext.verknuepfung}</div>` : ''}
-        ${activeWeekContext.notizen ? `<div><b>Notizen:</b> ${activeWeekContext.notizen}</div>` : ''}
-      </div>
-    </div>
-  `;
+  box.style.display = 'none';
+  box.innerHTML = '';
 }
 function getCurrentMonthEntriesForWeekFocus(){
-  const cur = currentMonthObj();
-  return monthEntries.filter(e =>
-    e.von &&
-    new Date(e.von).getFullYear() === cur.year &&
-    new Date(e.von).getMonth() === cur.month
-  );
-}
+  const mon = getMonday(weekOffset);
+  const fri = new Date(mon);
+  fri.setDate(mon.getDate() + 4);
 
+  return monthEntries.filter(e => {
+    if(!e.von || !e.bis) return false;
+
+    const start = new Date(e.von + 'T00:00:00');
+    const end = new Date(e.bis + 'T23:59:59');
+
+    return start <= fri && end >= mon;
+  });
+}
 function renderWeekFocusEditor(){
   const box = $('#weekFocusSubjects');
   if(!box) return;
