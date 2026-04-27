@@ -853,7 +853,7 @@ async function übernehmenInMonatsplanung(yearId){
 
   const monthEntry = {
     id: Date.now() + Math.random(),
-    fach: yearEntry.fach || '',
+    fach: normalizeFach(yearEntry.fach),
     thema: yearEntry.thema || '',
     von: yearEntry.von || '',
     bis: yearEntry.bis || '',
@@ -1266,7 +1266,7 @@ async function savePlanEntry(){
 
   const entry = {
     id: editingPlanId || Date.now() + Math.random(),
-    fach: $('#pfach').value,
+    fach: normalizeFach($('#pfach').value),
     thema: thema,
     von: $('#pfrom').value,
     bis: $('#pto').value,
@@ -1775,7 +1775,7 @@ async function importMonthJson(){
     for (const e of arr) {
       const entry = {
         id: Date.now() + Math.random(),
-        fach: e.fach || '',
+        fach: normalizeFach(e.fach),
         thema: e.thema || '',
         von: e.von || '',
         bis: e.bis || '',
@@ -1800,6 +1800,51 @@ async function importMonthJson(){
     alert('Ungültiges JSON für Monatsplanung.');
   }
 }
+function normalizeFach(fach){
+  const f = String(fach || '').trim().toLowerCase();
+
+  if(!f) return '';
+
+  if(['lesen','schreiben','rechtschreibung','sprache','sprache betrachten'].includes(f)) return 'deutsch';
+  if(['rechnen','mathematik'].includes(f)) return 'mathe';
+  if(['sachkunde','sachunterricht'].includes(f)) return 'sachunterricht';
+  if(['englisch'].includes(f)) return 'englisch';
+  if(['musik'].includes(f)) return 'musik';
+  if(['kunst','bildnerische erziehung','be'].includes(f)) return 'be';
+  if(['werken','textiles werken','technisches werken'].includes(f)) return 'werken';
+  if(['sport','bewegung','bewegung und sport'].includes(f)) return 'sport';
+  if(['religion','ethik','religion/ethik'].includes(f)) return 'religion';
+
+  return f;
+}
+function normalizeExistingPlanFaecher(){
+  let changed = false;
+
+  yearEntries.forEach(e => {
+    const neu = normalizeFach(e.fach);
+    if(neu !== e.fach){
+      e.fach = neu;
+      changed = true;
+    }
+  });
+
+  monthEntries.forEach(e => {
+    const neu = normalizeFach(e.fach);
+    if(neu !== e.fach){
+      e.fach = neu;
+      changed = true;
+    }
+  });
+
+  if(changed){
+    saveState();
+    renderYear();
+    renderMonth();
+    toast('Fächer bereinigt ✓');
+  } else {
+    toast('Keine fehlerhaften Fächer gefunden');
+  }
+}
 async function importYearJson(){
   const t = $('#importYearText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
@@ -1810,7 +1855,7 @@ async function importYearJson(){
     for (const e of arr) {
       const entry = {
         id: Date.now() + Math.random(),
-        fach: e.fach || '',
+        fach: normalizeFach(e.fach),
         thema: e.thema || '',
         von: e.von || '',
         bis: e.bis || '',
