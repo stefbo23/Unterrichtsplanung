@@ -524,18 +524,13 @@ function renderWeekContext(){
   box.innerHTML = '';
 }
 function getCurrentMonthEntriesForWeekFocus(){
-  const mon = getMonday(weekOffset);
-  const fri = new Date(mon);
-  fri.setDate(mon.getDate() + 4);
+  const cur = currentMonthObj();
 
-  return monthEntries.filter(e => {
-    if(!e.von || !e.bis) return false;
-
-    const start = new Date(e.von + 'T00:00:00');
-    const end = new Date(e.bis + 'T23:59:59');
-
-    return start <= fri && end >= mon;
-  });
+  return monthEntries.filter(e =>
+    e.von &&
+    new Date(e.von).getFullYear() === cur.year &&
+    new Date(e.von).getMonth() === cur.month
+  );
 }
 function renderWeekFocusEditor(){
   const box = $('#weekFocusSubjects');
