@@ -524,12 +524,14 @@ function renderWeekContext(){
   box.innerHTML = '';
 }
 function getCurrentMonthEntriesForWeekFocus(){
-  const cur = currentMonthObj();
+  const mon = getMonday(weekOffset);
+  const year = mon.getFullYear();
+  const month = mon.getMonth();
 
   return monthEntries.filter(e =>
     e.von &&
-    new Date(e.von).getFullYear() === cur.year &&
-    new Date(e.von).getMonth() === cur.month
+    new Date(e.von).getFullYear() === year &&
+    new Date(e.von).getMonth() === month
   );
 }
 function renderWeekFocusEditor(){
