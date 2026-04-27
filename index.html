@@ -353,7 +353,8 @@ function loadState(){
       selectedBooks: store.selectedBooks || selectedBooks,
       hoursCfg: store.hoursCfg || hoursCfg,
       monthPos: store.monthPos || 0,
-      weekFocus: store.weekFocus || { subjects:{}, common_focus:'', extra_focus:'', foerderfokus:'', methodenwunsch:'' },
+      weekFocus: store.weekFocus || emptyWeekFocus(),
+      weekFocusByWeek: store.weekFocusByWeek || {},
       focus: store.focus || '',
       optMethods: store.optMethods !== false,
       optPhases: store.optPhases !== false,
@@ -372,7 +373,8 @@ function loadState(){
   selectedBooks = d.selectedBooks || {'Flex und Flora':true,'Flex und Flo':true,'Sally':true};
   hoursCfg = d.hoursCfg || {deutsch:5,mathe:5,sachunterricht:3,englisch:2,musik:1,be:1,werken:1,sport:2,religion:2};
   monthPos = d.monthPos || 0;
-  weekFocus = d.weekFocus || { subjects:{}, common_focus:'', extra_focus:'', foerderfokus:'', methodenwunsch:'' };
+  weekFocus = d.weekFocus || emptyWeekFocus();
+  weekFocusByWeek = d.weekFocusByWeek || {};
 
   $('#focus').value = d.focus || '';
   $('#optMethods').checked = d.optMethods !== false;
