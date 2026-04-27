@@ -670,6 +670,7 @@ function currentWeekKey(){
   return dateKey(mon);
 }
   function renderWeek(){
+  weekFocus = weekFocusByWeek[currentWeekKey()] || emptyWeekFocus();
   renderWeekContext();
   renderWeekFocusSummary();
 
