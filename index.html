@@ -214,7 +214,11 @@ async function testSignIn() {
   const password = document.getElementById('authPassword').value;
 
   const errEl = document.getElementById('loginError');
-  if (!email || !password) { errEl.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl.style.display = 'block'; return; }
+  if (!email || !password) {
+    errEl.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    errEl.style.display = 'block';
+    return;
+  }
 
   const { data, error } = await supabaseClient.auth.signUp({
     email,
@@ -227,17 +231,26 @@ async function testSignIn() {
   console.log('Form SignUp data:', data);
   console.log('Form SignUp error:', error);
 
-  if (error) { document.getElementById('loginError').textContent = error.message; document.getElementById('loginError').style.display = 'block'; return; }
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
   closeModal('loginModal');
   toast('Registrierung erfolgreich! Bitte E-Mail bestätigen ✓');
-  notifyNewRegistration(email);
 }
   async function signInWithForm() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
 
-  const errEl2 = document.getElementById('loginError');
-  if (!email || !password) { errEl2.textContent = 'Bitte E-Mail und Passwort eingeben.'; errEl2.style.display = 'block'; return; }
+  const errEl = document.getElementById('loginError');
+  if (!email || !password) {
+    errEl.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    errEl.style.display = 'block';
+    return;
+  }
+
   const { data, error } = await supabaseClient.auth.signInWithPassword({
     email,
     password
@@ -246,7 +259,16 @@ async function testSignIn() {
   console.log('Form SignIn data:', data);
   console.log('Form SignIn error:', error);
 
-  if (error) { document.getElementById('loginError').textContent = error.message === 'Invalid login credentials' ? 'E-Mail oder Passwort falsch.' : error.message; document.getElementById('loginError').style.display = 'block'; return; }
+  if (error) {
+    errEl.textContent = error.message === 'Invalid login credentials'
+      ? 'E-Mail oder Passwort falsch.'
+      : error.message;
+    errEl.style.display = 'block';
+    return;
+  }
+
+  await notifyNewRegistration(email);
+
   closeModal('loginModal');
   updateAuthStatus();
   loadLessonsFromSupabase();
