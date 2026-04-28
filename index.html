@@ -33,20 +33,17 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
 </head>
 <body>
 <header>
-  <h1>Unterrichts<span>planung</span></h1>
+  <div>
+    <h1>Unterrichts<span>planung</span></h1>
+    <div style="font-size:.65rem;color:rgba(255,255,255,.45);margin-top:1px;letter-spacing:.03em">by <a href="https://www.mentallions.at" target="_blank" style="color:var(--amber);text-decoration:none">mentallions.at</a></div>
+  </div>
   <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
     <select class="sel" id="klasse"></select>
     <select class="sel" id="schuljahr"></select>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportData()">💾 Export</button>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="document.getElementById('importFile').click()">📂 Import</button>
-    <input class="sel" id="authEmail" type="email" placeholder="E-Mail" style="min-width:180px" />
-<input class="sel" id="authPassword" type="password" placeholder="Passwort" style="min-width:140px" />
-
-<button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="signUpWithForm()">Registrieren</button>
-<button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="signInWithForm()">Login</button>
-<button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="signOutUser()">Logout</button>
-
-<span id="authStatus" style="font-size:.75rem;color:#fff;opacity:.9">nicht eingeloggt</span>
+    <button class="btn btn-sm btn-outline" id="loginBtn" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openLoginModal()">🔑 Login</button>
+    <span id="authStatus" style="font-size:.75rem;color:rgba(255,255,255,.7)">nicht eingeloggt</span>
     <input type="file" id="importFile" accept=".json" style="display:none" />
   </div>
 </header>
@@ -64,7 +61,18 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
   <div class="view" id="view-monat"><div class="note">Für die Monatsplanung kopierst du den Prompt für den aktuell gewählten Monat und fügst das JSON hier ein.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">← zurück</button><span class="label" id="monthLabel"></span><button class="btn btn-outline btn-sm" onclick="changeMonth(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyMonthPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importMonth')">📥 JSON einfügen</button><button class="btn btn-outline btn-sm" onclick="openPlanModal('month')">+ Eintrag</button></div><div class="month-layout"><div class="months" id="monthList"></div><div class="month-pane" id="monthPane"></div></div></div>
   <div class="view" id="view-jahr"><div class="note">Für den Jahresplan kopierst du den Prompt, lässt dir von ChatGPT oder Claude nur JSON ausgeben und fügst das JSON hier ein.</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(-1)">← zurück</button><span class="label" id="yearLabel"></span><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyYearPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importYear')">📥 JSON einfügen</button></div><div class="year-grid" id="yearGrid"></div></div>
   <div class="view" id="view-foerderung"><div class="foerd"><div><div class="card"><div class="title">🌱 Kinder mit Förderbedarf</div><div class="kids" id="kids"></div><button class="add" onclick="openChildModal()">+ Kind hinzufügen</button></div></div><div class="card" id="childDetail"><div class="detail-empty">Kind auswählen</div></div></div></div>
-  <div class="view" id="view-einrichtung"><div class="card"><div class="title">Lehrwerke auswählen</div><div class="field"><label>Deutsch</label><div id="chips-deutsch"></div></div><div class="field"><label>Mathematik</label><div id="chips-mathe"></div></div><div class="field"><label>Englisch</label><div id="chips-englisch"></div></div><div class="field"><label>Sachunterricht</label><div id="chips-sachunterricht"></div></div></div><div class="card"><div class="title">Stunden pro Fach / Woche</div><div id="stdGrid"></div><div style="font-size:.75rem;color:var(--muted);margin-top:8px">Gesamt: <span id="stdTotal"></span> Std/Woche</div></div><div class="card"><div class="title">Prompt-Einstellungen</div><div class="field"><label>Schwerpunktthemen</label><textarea id="focus"></textarea></div><div style="display:flex;flex-direction:column;gap:8px"><label><input type="checkbox" id="optMethods" checked /> Methoden berücksichtigen</label><label><input type="checkbox" id="optPhases" checked /> Phasierung verlangen</label><label><input type="checkbox" id="optGen" checked /> Gen Alpha / kurze Sequenzen</label></div><div style="margin-top:12px"><button class="btn btn-green" onclick="saveState()">💾 Einstellungen speichern</button></div></div></div>
+  <div class="view" id="view-stundenplan">
+  <div class="card">
+    <div class="title">📅 Stundenplan – <span id="spKlasseLabel"></span></div>
+    <p style="font-size:.82rem;color:var(--muted);margin-bottom:16px">Lege fest welche Fächer an welchem Tag unterrichtet werden. Klick = aktiv/inaktiv. Reihenfolge = Stundenreihenfolge. Der Wochenplan-Prompt nutzt diesen Stundenplan automatisch.</p>
+    <div id="stundenplanGrid"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-green" onclick="saveStundenplan()">💾 Stundenplan speichern</button>
+      <button class="btn btn-outline" onclick="resetStundenplan()">↺ Zurücksetzen</button>
+    </div>
+  </div>
+</div>
+<div class="view" id="view-einrichtung"><div class="card"><div class="title">Lehrwerke auswählen</div><div class="field"><label>Deutsch</label><div id="chips-deutsch"></div></div><div class="field"><label>Mathematik</label><div id="chips-mathe"></div></div><div class="field"><label>Englisch</label><div id="chips-englisch"></div></div><div class="field"><label>Sachunterricht</label><div id="chips-sachunterricht"></div></div></div><div class="card"><div class="title">Stunden pro Fach / Woche</div><div id="stdGrid"></div><div style="font-size:.75rem;color:var(--muted);margin-top:8px">Gesamt: <span id="stdTotal"></span> Std/Woche</div></div><div class="card"><div class="title">Prompt-Einstellungen</div><div class="field"><label>Schwerpunktthemen</label><textarea id="focus"></textarea></div><div style="display:flex;flex-direction:column;gap:8px"><label><input type="checkbox" id="optMethods" checked /> Methoden berücksichtigen</label><label><input type="checkbox" id="optPhases" checked /> Phasierung verlangen</label><label><input type="checkbox" id="optGen" checked /> Gen Alpha / kurze Sequenzen</label></div><div style="margin-top:12px"><button class="btn btn-green" onclick="saveState()">💾 Einstellungen speichern</button></div></div></div>
 </main>
 <div class="modal-wrap" id="lessonModal"><div class="modal"><div class="modal-title" id="lessonModalTitle"></div><div class="modal-sub" id="lessonModalSub"></div><div class="note" style="margin-bottom:14px">Einzelstunden werden nach <b>AVIVA</b> gedacht:<div class="legend"><span class="pill" style="background:#888780">Ankommen</span><span class="pill" style="background:#D4A843">Vorwissen</span><span class="pill" style="background:#3A7BA7">Informieren</span><span class="pill" style="background:#4A7C6F">Verarbeiten</span><span class="pill" style="background:#C8523A">Auswerten</span></div></div><div class="field"><label>Fach</label><select id="lfach"></select></div><div class="field"><label>Thema</label><input id="lthema"></div><div class="field"><label>Lehrplanbezug / Einheit</label><input id="lkomp"></div><div class="field"><label>Fächerübergreifend</label><input id="lverk"></div><div class="field"><label>Mindestziel</label><input id="lmgoal"></div><div class="row"><div class="field"><label>Differenzierung nach unten</label><textarea id="ldown"></textarea></div><div class="field"><label>Differenzierung nach oben</label><textarea id="lup"></textarea></div></div><div class="field"><label>Sozialformen</label><input id="lsocial"></div><div class="field"><label>Methoden</label><div class="method-grid" id="methodGrid"></div></div><div class="field"><label>Phasierung (AVIVA)</label><div class="phase-list" id="phaseList"></div><button class="btn btn-outline btn-sm" onclick="resetAviva()">AVIVA zurücksetzen</button></div><div class="field"><label>Material / Notizen</label><textarea id="lmat"></textarea></div><div class="import" id="lessonImport"><div class="field"><label>JSON einfügen</label><textarea id="lessonImportText"></textarea></div><button class="btn btn-green btn-sm" onclick="importLessonJson()">Übernehmen</button></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('lessonModal')">Abbrechen</button><button class="btn btn-outline btn-sm" id="lessonDelete" onclick="deleteLesson()">Löschen</button><button class="btn btn-outline btn-sm" onclick="copyLessonPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="toggleImport('lessonImport')">📥 JSON einfügen</button><button class="btn btn-green btn-sm" onclick="saveLesson()">Speichern</button></div></div></div>
 <div class="modal-wrap" id="planModal"><div class="modal"><div class="modal-title" id="planTitle"></div><div class="modal-sub" id="planSub"></div><div class="field"><label>Fach</label><select id="pfach"></select></div><div class="field"><label>Thema / Einheit</label><input id="pthema"></div><div class="row"><div class="field"><label>Von</label><input type="date" id="pfrom"></div><div class="field"><label>Bis</label><input type="date" id="pto"></div></div><div class="field"><label>Kompetenzen</label><textarea id="pkomp"></textarea></div><div class="field"><label>Verknüpfungen</label><input id="pverk"></div><div class="field"><label>Notizen</label><textarea id="pnote"></textarea></div><div class="actions"><button class="btn btn-outline btn-sm" onclick="closeModal('planModal')">Abbrechen</button><button class="btn btn-outline btn-sm" id="planDelete" onclick="deletePlanEntry()">Löschen</button><button class="btn btn-green btn-sm" onclick="savePlanEntry()">Speichern</button></div></div></div>
@@ -107,6 +115,60 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
     <div class="actions">
       <button class="btn btn-outline btn-sm" onclick="closeModal('weekFocusModal')">Abbrechen</button>
       <button class="btn btn-green btn-sm" onclick="saveWeekFocus()">Übernehmen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════ LOGIN MODAL ════ -->
+<div class="modal-wrap" id="loginModal" onclick="if(event.target===this)closeModal('loginModal')">
+  <div class="modal" style="max-width:420px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:2rem;margin-bottom:8px">📚</div>
+      <div class="modal-title" style="font-size:1.3rem">VS Unterrichtsplanung</div>
+      <div style="font-size:.82rem;color:var(--muted);margin-top:4px">Melde dich an oder erstelle ein Konto</div>
+    </div>
+
+    <div id="loginError" style="display:none;background:#FDECEA;border:1.5px solid var(--red);border-radius:8px;padding:10px 12px;font-size:.8rem;color:var(--red);margin-bottom:14px"></div>
+
+    <div class="field">
+      <label>E-Mail Adresse</label>
+      <input id="authEmail" type="email" placeholder="deine@email.at" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Passwort</label>
+      <input id="authPassword" type="password" placeholder="Mindestens 6 Zeichen" autocomplete="current-password" />
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:20px">
+      <button class="btn btn-green" style="width:100%;padding:12px;font-size:.95rem" onclick="signInWithForm()">
+        Einloggen
+      </button>
+      <button class="btn btn-outline" style="width:100%;padding:12px;font-size:.95rem" onclick="signUpWithForm()">
+        Neues Konto erstellen
+      </button>
+    </div>
+
+    <div style="text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)">
+      <a href="https://www.mentallions.at" target="_blank" style="font-size:.82rem;font-weight:700;color:var(--green);text-decoration:none">mentallions.at</a>
+      <div style="font-size:.72rem;color:var(--muted);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:5px">
+        <span>🇪🇺</span> Deine Daten werden ausschließlich auf Servern in der EU gespeichert.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ USER MENU MODAL ════ -->
+<div class="modal-wrap" id="userModal" onclick="if(event.target===this)closeModal('userModal')">
+  <div class="modal" style="max-width:360px">
+    <div style="text-align:center;margin-bottom:20px">
+      <div style="font-size:2rem;margin-bottom:8px">👩‍🏫</div>
+      <div class="modal-title">Mein Konto</div>
+      <div id="userEmail" style="font-size:.82rem;color:var(--muted);margin-top:4px"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button class="btn btn-outline" style="width:100%;padding:11px" onclick="signOutUser();closeModal('userModal')">
+        Ausloggen
+      </button>
     </div>
   </div>
 </div>
@@ -162,9 +224,11 @@ async function testSignIn() {
   async function signUpWithForm() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('loginError');
 
   if (!email || !password) {
-    alert('Bitte E-Mail und Passwort eingeben.');
+    errEl.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    errEl.style.display = 'block';
     return;
   }
 
@@ -176,22 +240,26 @@ async function testSignIn() {
     }
   });
 
-  console.log('Form SignUp data:', data);
-  console.log('Form SignUp error:', error);
-
   if (error) {
-    alert(error.message);
+    errEl.textContent = error.message;
+    errEl.style.display = 'block';
     return;
   }
 
-  alert('Registrierung abgeschickt. Bitte E-Mail prüfen.');
+  closeModal('loginModal');
+  toast('Registrierung erfolgreich! Bitte E-Mail bestätigen ✓');
+
+  // Benachrichtigung an dich als Admin
+  notifyNewRegistration(email);
 }
   async function signInWithForm() {
   const email = document.getElementById('authEmail').value.trim();
   const password = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('loginError');
 
   if (!email || !password) {
-    alert('Bitte E-Mail und Passwort eingeben.');
+    errEl.textContent = 'Bitte E-Mail und Passwort eingeben.';
+    errEl.style.display = 'block';
     return;
   }
 
@@ -200,16 +268,16 @@ async function testSignIn() {
     password
   });
 
-  console.log('Form SignIn data:', data);
-  console.log('Form SignIn error:', error);
-
   if (error) {
-    alert(error.message);
+    errEl.textContent = 'Fehler: ' + (error.message === 'Invalid login credentials' ? 'E-Mail oder Passwort falsch.' : error.message);
+    errEl.style.display = 'block';
     return;
   }
 
+  closeModal('loginModal');
   updateAuthStatus();
   loadLessonsFromSupabase();
+  toast('Willkommen zurück! ✓');
 }
   async function signOutUser() {
   const { error } = await supabaseClient.auth.signOut();
@@ -228,18 +296,32 @@ renderTag();
 }
   async function updateAuthStatus() {
   const { data, error } = await supabaseClient.auth.getUser();
-
-  console.log('Auth status user:', data);
-  console.log('Auth status error:', error);
-
   const el = document.getElementById('authStatus');
+  const btn = document.getElementById('loginBtn');
   if (!el) return;
 
   if (data && data.user) {
-    el.textContent = 'eingeloggt: ' + data.user.email;
+    const short = data.user.email.split('@')[0];
+    el.textContent = '👤 ' + short;
+    el.style.cursor = 'pointer';
+    el.onclick = () => {
+      document.getElementById('userEmail').textContent = data.user.email;
+      document.getElementById('userModal').classList.add('open');
+    };
+    if(btn) { btn.textContent = '👤 ' + short; btn.onclick = () => {
+      document.getElementById('userEmail').textContent = data.user.email;
+      document.getElementById('userModal').classList.add('open');
+    };}
   } else {
     el.textContent = 'nicht eingeloggt';
+    el.onclick = null;
+    if(btn) { btn.textContent = '🔑 Login'; btn.onclick = openLoginModal; }
   }
+}
+
+function openLoginModal(){
+  document.getElementById('loginError').style.display = 'none';
+  document.getElementById('loginModal').classList.add('open');
 }
   supabaseClient.auth.onAuthStateChange(() => {
   updateAuthStatus();
@@ -436,9 +518,257 @@ async function loadLessonsFromSupabase() {
   renderWeek();
   renderTag();
 }
+
+// ════════════════════════════════════════
+// STUNDENPLAN
+// ════════════════════════════════════════
+var stundenplaene = {};
+
+function getStundenplanKey(){
+  return 'sp__' + currentContextKey();
+}
+
+function getStundenplan(){
+  var key = getStundenplanKey();
+  return stundenplaene[key] || {montag:[],dienstag:[],mittwoch:[],donnerstag:[],freitag:[]};
+}
+
+function saveStundenplan(){
+  var key = getStundenplanKey();
+  var TAGE = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  var sp = {montag:[],dienstag:[],mittwoch:[],donnerstag:[],freitag:[]};
+  TAGE.forEach(function(tag){
+    var col = document.getElementById('spcol-'+tag);
+    if(!col) return;
+    col.querySelectorAll('.sp-chip.on').forEach(function(c){
+      sp[tag].push(c.dataset.fach);
+    });
+  });
+  stundenplaene[key] = sp;
+  try{
+    var store = JSON.parse(localStorage.getItem('vs_all')||'{}');
+    if(!store.stundenplaene) store.stundenplaene = {};
+    store.stundenplaene[key] = sp;
+    localStorage.setItem('vs_all', JSON.stringify(store));
+  }catch(e){}
+  toast('Stundenplan gespeichert ✓');
+}
+
+function resetStundenplan(){
+  var key = getStundenplanKey();
+  stundenplaene[key] = {montag:[],dienstag:[],mittwoch:[],donnerstag:[],freitag:[]};
+  renderStundenplan();
+  toast('Stundenplan zurückgesetzt');
+}
+
+function loadStundenplaene(){
+  try{
+    var store = JSON.parse(localStorage.getItem('vs_all')||'{}');
+    stundenplaene = store.stundenplaene || {};
+  }catch(e){ stundenplaene = {}; }
+}
+
+function renderStundenplan(){
+  var klasse = $('#klasse').value || '1a';
+  var label = klasse[0]+'. Klasse '+klasse[1].toUpperCase();
+  document.getElementById('spKlasseLabel').textContent = label;
+
+  var sp = getStundenplan();
+  var grid = document.getElementById('stundenplanGrid');
+  if(!grid) return;
+
+  var TAGE = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  var TAGE_LABEL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+  var FAECHER = Object.entries(SUBJECTS).filter(function(e){ return e[0] !== 'uebergreifend'; });
+
+  var out = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">';
+  TAGE.forEach(function(tag, ti){
+    var sel = sp[tag] || [];
+    out += '<div>';
+    out += '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid var(--border)">'+TAGE_LABEL[ti]+'</div>';
+    out += '<div id="spcol-'+tag+'" style="display:flex;flex-direction:column;gap:5px">';
+    // Erst ausgewählte in Reihenfolge
+    sel.forEach(function(fach){
+      var col = SCOL[fach] || '#888';
+      var label = SUBJECTS[fach] || fach;
+      out += '<div class="sp-chip on" data-fach="'+fach+'" onclick="toggleSpChip(this)" style="padding:7px 9px;border-radius:8px;font-size:.76rem;cursor:pointer;font-weight:500;background:'+col+';color:white;border:1.5px solid '+col+'">'+label+'</div>';
+    });
+    // Dann restliche Fächer
+    FAECHER.forEach(function(entry){
+      var fach = entry[0];
+      var label = entry[1];
+      if(sel.includes(fach)) return;
+      out += '<div class="sp-chip" data-fach="'+fach+'" onclick="toggleSpChip(this)" style="padding:7px 9px;border-radius:8px;font-size:.76rem;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);color:var(--muted)">'+label+'</div>';
+    });
+    out += '</div>';
+    // Stundenzahl anzeigen
+    out += '<div style="font-size:.7rem;color:var(--muted);margin-top:6px;text-align:center">'+sel.length+' Stunden</div>';
+    out += '</div>';
+  });
+  out += '</div>';
+  grid.innerHTML = out;
+}
+
+function toggleSpChip(el){
+  var fach = el.dataset.fach;
+  var col = SCOL[fach] || '#888';
+  var label = SUBJECTS[fach] || fach;
+  el.classList.toggle('on');
+  var isOn = el.classList.contains('on');
+  if(isOn){
+    el.style.background = col;
+    el.style.color = 'white';
+    el.style.borderColor = col;
+    el.style.fontWeight = '500';
+    // An den Anfang (vor die inaktiven)
+    var parent = el.parentNode;
+    var firstOff = parent.querySelector('.sp-chip:not(.on)');
+    if(firstOff) parent.insertBefore(el, firstOff);
+  } else {
+    el.style.background = 'var(--bg)';
+    el.style.color = 'var(--muted)';
+    el.style.borderColor = 'var(--border)';
+    el.style.fontWeight = 'normal';
+    // Ans Ende
+    el.parentNode.appendChild(el);
+  }
+  // Stundenzahl aktualisieren
+  var col_el = el.closest('[id^="spcol-"]');
+  if(col_el){
+    var count = col_el.querySelectorAll('.sp-chip.on').length;
+    var counter = col_el.nextElementSibling;
+    if(counter) counter.textContent = count + ' Stunden';
+  }
+}
+
+function getStundenplanText(){
+  var sp = getStundenplan();
+  var TAGE = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  var TAGE_LABEL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+  var lines = [];
+  TAGE.forEach(function(tag, i){
+    var faecher = sp[tag] || [];
+    if(faecher.length > 0){
+      var labels = faecher.map(function(f){ return SUBJECTS[f]||f; });
+      lines.push(TAGE_LABEL[i]+': '+labels.join(', '));
+    }
+  });
+  return lines.length ? lines.join('\n') : null;
+}
+
+function getTagStundenplan(dayIndex){
+  var sp = getStundenplan();
+  var tagMap = {0:'montag',1:'dienstag',2:'mittwoch',3:'donnerstag',4:'freitag'};
+  var tag = tagMap[dayIndex];
+  var faecher = sp[tag] || [];
+  return faecher.map(function(f){ return SUBJECTS[f]||f; });
+}
+
+// ════════════════════════════════════════
+// LEHRPLAN-FALLBACK VOLKSSCHULE
+// Quelle: BGBl. II Nr. 368/2005, Stundentafel 1.–4. Schulstufe
+// ════════════════════════════════════════
+
+function getKlassenstufe(){
+  const kl = $('#klasse').value || '1a';
+  return parseInt(String(kl).charAt(0), 10) || 1;
+}
+
+// Wochenstunden laut amtlicher Stundentafel:
+// Deutsch/Lesen/Schreiben: 7  |  Mathematik: 4  |  Sachunterricht: 3
+// Religion: 2  |  Musik: 1  |  BE: 1  |  Werken: 1 (1./2.) / 2 (3./4.)
+// Sport: 3 (1./2.) / 2 (3./4.)
+// Lebende Fremdsprache: 1./2. = 32 Jahresstunden (keine fixe Wochenstunde)
+//   3./4. = 1 Wochenstunde fix
+const LEHRPLAN_STUNDEN = {
+  // 1./2. Schulstufe laut BGBl. II Nr. 368/2005:
+  // Deutsch 7 | Mathe 4 | Sachunterricht 3 | Sport 3
+  // Religion 2 | Musik 1 | BE 1 | Werken 1
+  // Englisch: nur 32 Jahresstunden, keine fixe Wochenstunde
+  1: {
+    montag:     ['deutsch','deutsch','sachunterricht','mathe','sport'],
+    dienstag:   ['deutsch','mathe','religion','be'],
+    mittwoch:   ['deutsch','deutsch','sachunterricht','mathe','sport'],
+    donnerstag: ['deutsch','mathe','musik','sport'],
+    freitag:    ['deutsch','sachunterricht','religion','werken']
+  },
+  2: {
+    montag:     ['deutsch','deutsch','sachunterricht','mathe','sport'],
+    dienstag:   ['deutsch','mathe','religion','be'],
+    mittwoch:   ['deutsch','deutsch','sachunterricht','mathe','sport'],
+    donnerstag: ['deutsch','mathe','musik','sport'],
+    freitag:    ['deutsch','sachunterricht','religion','werken']
+  },
+  // 3./4. Schulstufe laut BGBl. II Nr. 368/2005:
+  // Deutsch 7 | Mathe 4 | Sachunterricht 3 | Sport 2
+  // Religion 2 | Englisch 1 | Musik 1 | BE 1 | Werken 2
+  3: {
+    montag:     ['deutsch','deutsch','sachunterricht','mathe','musik'],
+    dienstag:   ['deutsch','mathe','englisch','sport','religion'],
+    mittwoch:   ['deutsch','deutsch','sachunterricht','mathe','be'],
+    donnerstag: ['deutsch','werken','sport','religion'],
+    freitag:    ['deutsch','sachunterricht','mathe','werken']
+  },
+  4: {
+    montag:     ['deutsch','deutsch','sachunterricht','mathe','musik'],
+    dienstag:   ['deutsch','mathe','englisch','sport','religion'],
+    mittwoch:   ['deutsch','deutsch','sachunterricht','mathe','be'],
+    donnerstag: ['deutsch','werken','sport','religion'],
+    freitag:    ['deutsch','sachunterricht','mathe','werken']
+  }
+};
+
+function getEffektiverStundenplan(){
+  const sp = getStundenplan();
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const hasCustom = tage.some(t => Array.isArray(sp[t]) && sp[t].length > 0);
+  if(hasCustom) return { type:'custom', plan:sp };
+  const stufe = getKlassenstufe();
+  const lehrplan = LEHRPLAN_STUNDEN[stufe];
+  if(lehrplan) return { type:'lehrplan', stufe, plan:lehrplan };
+  return { type:'fallback', plan:null };
+}
+
+function getFaecherFuerTag(tagIndex){
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const eff = getEffektiverStundenplan();
+  if(eff.type === 'fallback') return [];
+  return eff.plan[tage[tagIndex]] || [];
+}
+
+function getMaxStunden(){
+  const eff = getEffektiverStundenplan();
+  if(eff.type === 'fallback') return 6;
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  return Math.max(...tage.map(t => (eff.plan[t] || []).length), 4);
+}
+
+
+// ════ REGISTRIERUNGS-BENACHRICHTIGUNG ════
+// Sendet dir eine E-Mail wenn sich jemand neu registriert
+// Nutzt Supabase Edge Function oder einen einfachen Webhook
+async function notifyNewRegistration(newUserEmail) {
+  try {
+    // Option A: Supabase-Datenbankeintrag als Trigger-Signal
+    // (Supabase Trigger → E-Mail an dich, muss in Supabase konfiguriert werden)
+    await supabaseClient
+      .from('registrations')
+      .insert([{
+        email: newUserEmail,
+        registered_at: new Date().toISOString(),
+        notified: false
+      }]);
+
+    console.log('Registrierung gespeichert:', newUserEmail);
+  } catch(e) {
+    console.log('Benachrichtigung konnte nicht gespeichert werden:', e);
+  }
+}
+
 function init(){
-  ['1','2','3','4'].forEach(k=>{
-    $('#klasse').insertAdjacentHTML('beforeend', `<option value="${k}">${k}. Klasse</option>`);
+  ['1a','1b','1c','2a','2b','2c','3a','3b','3c','4a','4b','4c'].forEach(k=>{
+    const label = k[0]+'. Klasse '+k[1].toUpperCase();
+    $('#klasse').insertAdjacentHTML('beforeend', `<option value="${k}">${label}</option>`);
   });
 
   for(let y=2024; y<=2034; y++){
@@ -454,6 +784,7 @@ function init(){
     ['monat','Monatsplanung'],
     ['jahr','Jahresplan'],
     ['foerderung','🌱 Förderung'],
+    ['stundenplan','📅 Stundenplan'],
     ['einrichtung','⚙ Einrichtung']
   ];
 
@@ -502,6 +833,7 @@ function init(){
   buildHourSettings();
 
   loadState();
+  loadStundenplaene();
 
   $('#schuljahr').value = schoolYear;
   renderAll();
@@ -513,7 +845,7 @@ function buildMethods(){$('#methodGrid').innerHTML=METHODS.map(m=>`<div class="m
 function buildAreas(){$('#areas').innerHTML=Object.keys(AREAS).map(a=>`<div class="area" data-area="${a}">${a}</div>`).join(''); $('#areas').addEventListener('click',e=>{const c=e.target.closest('.area'); if(!c) return; c.classList.toggle('on'); c.style.background=c.classList.contains('on')?AREAS[c.dataset.area]:''})}
 function buildBookSettings(){['deutsch','mathe','englisch','sachunterricht'].forEach(f=>{const box=$('#chips-'+f); box.innerHTML=''; Object.keys(BOOKS[f]||{}).forEach(b=>{const el=document.createElement('button'); el.className='btn btn-sm btn-outline'; el.style.margin='0 6px 6px 0'; if(selectedBooks[b]){el.style.background='var(--green)'; el.style.color='#fff'; el.style.borderColor='var(--green)'} el.textContent=b; el.onclick=()=>{selectedBooks[b]=!selectedBooks[b]; buildBookSettings(); renderSidebar(); saveState()}; box.appendChild(el)})})}
 function buildHourSettings(){const box=$('#stdGrid'); box.innerHTML=''; Object.entries(SUBJECTS).forEach(([k,v])=>{if(k==='uebergreifend') return; const row=document.createElement('div'); row.style.display='flex'; row.style.alignItems='center'; row.style.gap='8px'; row.style.background='var(--bg)'; row.style.border='1.5px solid var(--border)'; row.style.borderRadius='9px'; row.style.padding='9px 12px'; row.style.marginBottom='8px'; row.innerHTML=`<div style="width:10px;height:10px;border-radius:50%;background:${SCOL[k]||'#888'}"></div><div style="flex:1;font-size:.78rem">${v}</div><input data-sub="${k}" type="number" min="0" max="10" value="${hoursCfg[k]??0}" style="width:50px;padding:4px 6px;border:1px solid var(--border);border-radius:5px;text-align:center">`; box.appendChild(row)}); box.querySelectorAll('input').forEach(inp=>inp.addEventListener('input',()=>{hoursCfg[inp.dataset.sub]=+inp.value; $('#stdTotal').textContent=Object.values(hoursCfg).reduce((a,b)=>a+(+b||0),0); saveState()})); $('#stdTotal').textContent=Object.values(hoursCfg).reduce((a,b)=>a+(+b||0),0)}
-function renderView(v){if(v==='woche') renderWeek(); if(v==='tag') renderTag(); if(v==='monat') renderMonth(); if(v==='jahr') renderYear(); if(v==='foerderung') renderChildren(); if(v==='einrichtung'){buildBookSettings(); buildHourSettings()}}
+function renderView(v){if(v==='woche') renderWeek(); if(v==='tag') renderTag(); if(v==='monat') renderMonth(); if(v==='jahr') renderYear(); if(v==='foerderung') renderChildren(); if(v==='stundenplan') renderStundenplan(); if(v==='einrichtung'){buildBookSettings(); buildHourSettings()}}
 function renderAll(){renderWeek(); renderTag(); renderMonth(); renderYear(); renderSidebar(); renderChildren(); buildBookSettings(); buildHourSettings()}
 function renderSidebar(){const box=$('#sidebar'); box.innerHTML=''; const kl=+$('#klasse').value||1; Object.entries(BOOKS).forEach(([fach,buecher])=>{const active=Object.keys(buecher).some(b=>selectedBooks[b]); if(!active) return; box.insertAdjacentHTML('beforeend',`<div class="sb-head"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${SCOL[fach]||'#888'}"></span> ${SUBJECTS[fach]||fach}</div>`); Object.entries(buecher).forEach(([book,klassen])=>{if(!selectedBooks[book]) return; box.insertAdjacentHTML('beforeend',`<div class="sb-book">${book}</div>`); (klassen[kl]||[]).forEach(e=>{const d=document.createElement('div'); d.className='sb-item'; d.textContent=e; d.onclick=()=>insertUnit(fach,book,e); box.appendChild(d)})})})}
 function insertUnit(fach,book,unit){if(!$('#lessonModal').classList.contains('open')){toast('Öffne zuerst eine Stunde.'); return} $('#lfach').value=fach; $('#lkomp').value=`[${book}] ${unit}`; if(!$('#lthema').value) $('#lthema').value=unit; toast('Einheit übernommen ✓')}
@@ -673,48 +1005,141 @@ function currentWeekKey(){
   renderWeekFocusSummary();
 
   const mon = getMonday(weekOffset);
+  const eff = getEffektiverStundenplan();
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+
   $('#weekLabel').textContent = `KW ${getKW(mon)} · ${mon.getFullYear()}`;
 
+  // Hinweis wenn Lehrplan-Fallback aktiv
+  let hinweisEl = $('#weekPlanHinweis');
+  if(!hinweisEl){
+    hinweisEl = document.createElement('div');
+    hinweisEl.id = 'weekPlanHinweis';
+    hinweisEl.style.cssText = 'font-size:.75rem;color:var(--muted);margin-bottom:8px;padding:6px 10px;background:var(--amber-l);border:1px solid var(--amber);border-radius:7px';
+    $('#weekGrid').before ? $('#weekGrid').insertAdjacentElement('beforebegin', hinweisEl) : null;
+  }
+  if(eff.type === 'lehrplan'){
+    hinweisEl.textContent = `ℹ️ Lehrplan-Standardrahmen (${eff.stufe}. Schulstufe) – eigenen Stundenplan im Tab "📅 Stundenplan" hinterlegen`;
+    hinweisEl.style.display = 'block';
+  } else if(eff.type === 'custom'){
+    hinweisEl.textContent = `✅ Eigener Stundenplan aktiv`;
+    hinweisEl.style.display = 'block';
+  } else {
+    hinweisEl.style.display = 'none';
+  }
+
+  // Maximale Stunden über alle Tage ermitteln
+  const maxS = getMaxStunden();
+
+  // Grid-Spalten dynamisch (52px Zeit + 5 Tage)
   const g = $('#weekGrid');
   g.innerHTML = '';
+  g.style.gridTemplateColumns = `52px repeat(5, 1fr)`;
+
   g.insertAdjacentHTML('beforeend','<div class="head empty"></div>');
 
   DAYS.forEach((d,i)=>{
     const dt = new Date(mon.getTime() + i * 86400000);
+    // Stundenzahl dieses Tages aus Stundenplan
+    const tagKey = tage[i];
+    const tagStunden = eff.type !== 'fallback' ? (eff.plan[tagKey] || []).length : maxS;
     g.insertAdjacentHTML(
       'beforeend',
-      `<div class="head"><div>${d}</div><div style="font-weight:300;opacity:.6;font-size:.67rem">${fmtDate(dt)}</div></div>`
+      `<div class="head"><div>${d}</div><div style="font-weight:300;opacity:.6;font-size:.67rem">${fmtDate(dt)}</div><div style="font-size:.62rem;opacity:.5">${tagStunden} Std</div></div>`
     );
   });
 
-  for(let s=0; s<6; s++){
+  for(let s=0; s<maxS; s++){
     g.insertAdjacentHTML(
       'beforeend',
-      `<div class="time"><div>${s+1}.<br><span style="font-size:.62rem">${TIMES[s]}</span></div></div>`
+      `<div class="time"><div>${s+1}.<br><span style="font-size:.62rem">${TIMES[s]||''}</span></div></div>`
     );
 
     DAYS.forEach((_,ti)=>{
       const d = new Date(mon.getTime() + ti * 86400000);
+      const tagKey = tage[ti];
+      const tagFaecher = eff.type !== 'fallback' ? (eff.plan[tagKey] || []) : [];
       const key = `${dateKey(d)}_${s}`;
       const L = lessons[key];
 
       const cell = document.createElement('div');
-      cell.className = 'cell' + (L && L.fach ? ' has' : '');
 
-      if(L && L.fach) {
-        cell.style.borderLeftColor = SCOL[L.fach] || 'var(--gray)';
+      // Prüfen ob diese Stunde laut Stundenplan existiert
+      const stundePlanned = eff.type === 'fallback' || s < tagFaecher.length;
+
+      if(!stundePlanned){
+        // Grauer Platzhalter für nicht geplante Stunden
+        cell.className = 'cell';
+        cell.style.cssText = 'background:var(--bg);border-color:var(--border);opacity:.35;cursor:default';
+        cell.innerHTML = `<div class="empty" style="font-size:.65rem">–</div>`;
+        g.appendChild(cell);
+        return;
       }
 
-      cell.innerHTML = L && L.fach
-        ? `<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`
-        : `<div class="empty">+ planen</div>`;
+      cell.className = 'cell' + (L && L.fach ? ' has' : '');
+
+      if(L && L.fach){
+        cell.style.borderLeftColor = SCOL[L.fach] || 'var(--gray)';
+      } else if(eff.type !== 'fallback' && tagFaecher[s]){
+        // Vorschlag aus Stundenplan (noch nicht geplant)
+        const vorschlagFach = tagFaecher[s];
+        cell.style.borderLeftColor = SCOL[vorschlagFach] || 'var(--gray)';
+        cell.style.opacity = '0.7';
+      }
+
+      if(L && L.fach){
+        cell.innerHTML = `<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`;
+      } else if(eff.type !== 'fallback' && tagFaecher[s]){
+        const vf = tagFaecher[s];
+        cell.innerHTML = `<div class="fach" style="color:${SCOL[vf]||'var(--gray)'};opacity:.6">${SUBJECTS[vf]||vf}</div><div class="empty" style="font-size:.68rem">+ planen</div>`;
+      } else {
+        cell.innerHTML = `<div class="empty">+ planen</div>`;
+      }
 
       cell.onclick = () => openLessonModal(key, ti, s, d);
       g.appendChild(cell);
     });
   }
 }
-function renderTag(){if(isWeekend(currentDay)){currentDay.setDate(currentDay.getDate()+1); return renderTag()} $('#dayLabel').textContent=fmtLong(currentDay); $('#dayPicker').value=dateKey(currentDay); const line=$('#dayLine'); line.innerHTML=''; for(let s=0;s<6;s++){if(s>0&&PAUSES[s-1]) line.insertAdjacentHTML('beforeend','<div class="pause">☕ Pause</div>'); const key=`${dateKey(currentDay)}_${s}`, L=lessons[key]; const div=document.createElement('div'); div.className='slot'+(L&&L.fach?' has':'')+(selectedSlot===s?' on':''); if(L&&L.fach) div.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; div.innerHTML=`<div class="slot-time">${s+1}. Std · ${TIMES[s]}</div>${L&&L.fach?`<div class="slot-fach" style="color:${SCOL[L.fach]}">${SUBJECTS[L.fach]||L.fach}</div><div class="slot-thema">${L.thema||''}</div>`:`<div class="empty">+ Stunde planen</div>`}`; div.onclick=()=>{selectedSlot=s; renderTag(); renderDayDetail(key,s)}; div.ondblclick=()=>openLessonModal(key,-1,s,currentDay); line.appendChild(div)} if(selectedSlot!==null) renderDayDetail(`${dateKey(currentDay)}_${selectedSlot}`,selectedSlot); else $('#dayDetail').innerHTML='<div class="detail-empty">← Stunde auswählen</div>'}
+function renderTag(){
+  if(isWeekend(currentDay)){currentDay.setDate(currentDay.getDate()+1); return renderTag()}
+  $('#dayLabel').textContent = fmtLong(currentDay);
+  $('#dayPicker').value = dateKey(currentDay);
+  const line = $('#dayLine');
+  line.innerHTML = '';
+
+  // Stunden laut Stundenplan für diesen Wochentag
+  const tagIdx = (currentDay.getDay() + 6) % 7; // 0=Mo, 4=Fr
+  const eff = getEffektiverStundenplan();
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const tagKey = tage[tagIdx];
+  const tagFaecher = eff.type !== 'fallback' ? (eff.plan[tagKey] || []) : [];
+  const maxS = tagFaecher.length > 0 ? tagFaecher.length : 6;
+
+  for(let s=0; s<maxS; s++){
+    if(s>0 && PAUSES[s-1]) line.insertAdjacentHTML('beforeend','<div class="pause">☕ Pause</div>');
+    const key = `${dateKey(currentDay)}_${s}`;
+    const L = lessons[key];
+    const div = document.createElement('div');
+    div.className = 'slot'+(L&&L.fach?' has':'')+(selectedSlot===s?' on':'');
+    if(L&&L.fach) div.style.borderLeftColor = SCOL[L.fach]||'var(--gray)';
+
+    const fachVorschlag = tagFaecher[s] || null;
+    const fachLabel = L&&L.fach
+      ? `<div class="slot-fach" style="color:${SCOL[L.fach]}">${SUBJECTS[L.fach]||L.fach}</div><div class="slot-thema">${L.thema||''}</div>`
+      : fachVorschlag
+        ? `<div class="slot-fach" style="color:${SCOL[fachVorschlag]||'var(--gray)'};opacity:.6">${SUBJECTS[fachVorschlag]||fachVorschlag}</div><div class="empty">+ planen</div>`
+        : `<div class="empty">+ Stunde planen</div>`;
+
+    div.innerHTML = `<div class="slot-time">${s+1}. Std · ${TIMES[s]||''}</div>${fachLabel}`;
+    div.onclick = ()=>{ selectedSlot=s; renderTag(); renderDayDetail(key,s) };
+    div.ondblclick = ()=>openLessonModal(key,-1,s,currentDay);
+    line.appendChild(div);
+  }
+  if(selectedSlot!==null) renderDayDetail(`${dateKey(currentDay)}_${selectedSlot}`,selectedSlot);
+  else $('#dayDetail').innerHTML='<div class="detail-empty">← Stunde auswählen</div>';
+}
+
 function renderDayDetail(key,s){const L=lessons[key]; const box=$('#dayDetail'); if(!L||!L.fach){box.innerHTML=`<div class="detail-empty"><div><div style="margin-bottom:12px">${s+1}. Stunde · ${TIMES[s]}</div><button class="btn btn-green" onclick="openLessonModal('${key}',-1,${s},currentDay)">+ Stunde planen</button></div></div>`; return} const phases=(L.phasen||[]).map((p,i)=>`<div class="phase" style="background:${phaseColor(p.name,i)}"><span>${p.name}</span><small>${p.min||''}′</small></div>`).join(''); const phaseDetails=(L.phasen||[]).map((p,i)=>`<div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px"><div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:${phaseColor(p.name,i)};margin-bottom:6px">${p.name} · ${p.min||''} Min</div>${p.beschreibung?`<div class="sect-val" style="margin-bottom:6px">${p.beschreibung}</div>`:''}${p.sozialform?`<div style="font-size:.76rem;margin-bottom:4px"><b>Sozialform:</b> ${p.sozialform}</div>`:''}${p.differenzierung?`<div style="font-size:.76rem"><b>Differenzierung:</b> ${p.differenzierung}</div>`:''}</div>`).join(''); const methods=(L.methoden||[]).map(m=>`<span class="chip">${m}</span>`).join(''); box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px"><div><div class="detail-title">${L.thema||'(kein Thema)'}</div><div class="detail-sub">${s+1}. Stunde · ${TIMES[s]}</div></div><button class="btn btn-outline btn-sm" onclick="openLessonModal('${key}',-1,${s},currentDay)">✏ Bearbeiten</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span style="background:${SCOL[L.fach]};color:#fff;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700">${SUBJECTS[L.fach]||L.fach}</span></div>${L.phasen?.length?`<div class="sect"><div class="sect-label">AVIVA Überblick</div><div class="phases">${phases}</div></div><div class="sect"><div class="sect-label">AVIVA im Detail</div>${phaseDetails}</div>`:''}${L.methoden?.length?`<div class="sect"><div class="sect-label">Methoden</div><div class="chips">${methods}</div></div>`:''}${L.kompetenz?`<div class="sect"><div class="sect-label">Lehrplanbezug</div><div class="sect-val">${L.kompetenz}</div></div>`:''}${L.verknuepfung?`<div class="sect"><div class="sect-label">Fächerübergreifend</div><div class="sect-val">${L.verknuepfung}</div></div>`:''}${L.mindestziel?`<div class="sect"><div class="sect-label">Mindestziel</div><div class="sect-val">${L.mindestziel}</div></div>`:''}${L.diffUnten?`<div class="sect"><div class="sect-label">Differenzierung nach unten</div><div class="sect-val">${L.diffUnten}</div></div>`:''}${L.diffOben?`<div class="sect"><div class="sect-label">Differenzierung nach oben</div><div class="sect-val">${L.diffOben}</div></div>`:''}${L.sozialformen?`<div class="sect"><div class="sect-label">Sozialformen</div><div class="sect-val">${L.sozialformen}</div></div>`:''}${L.material?`<div class="sect"><div class="sect-label">Material / Notizen</div><div class="sect-val">${L.material}</div></div>`:''}`}
 function inWochenplanungÜbernehmen(monthId){
   const monthEntry = monthEntries.find(e => String(e.id) === String(monthId));
@@ -1476,7 +1901,17 @@ function copyDayPrompt(){
   copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.
 
 Rahmen:
-- 6 Unterrichtsstunden
+${(()=>{
+  const tagIdx = (currentDay.getDay()+6)%7;
+  const eff = getEffektiverStundenplan();
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const tagKey = tage[tagIdx];
+  if(eff.type === 'fallback') return '- 6 Unterrichtsstunden';
+  const faecher = (eff.plan[tagKey] || []).map(f => SUBJECTS[f]||f);
+  if(!faecher.length) return '- ca. 5 Unterrichtsstunden';
+  const src = eff.type === 'custom' ? 'eigener Stundenplan' : `Lehrplan-Standard ${eff.stufe}. Schulstufe`;
+  return `- ${faecher.length} Unterrichtsstunden laut ${src}\n- Fächer in Reihenfolge: ${faecher.join(', ')}`;
+})()}
 - Lehrwerke: ${activeBooks()}
 - Die Planung soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Für jede Stunde müssen alle Felder vollständig ausgefüllt werden.
@@ -1516,7 +1951,13 @@ Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
   }
 ]
 
-Wichtig: genau 6 Einträge, stunde 0 bis 5.`);
+${(()=>{
+  const tagIdx = (currentDay.getDay()+6)%7;
+  const eff = getEffektiverStundenplan();
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const n = eff.type !== 'fallback' ? (eff.plan[tage[tagIdx]]||[]).length || 6 : 6;
+  return `Wichtig: genau ${n} Einträge, stunde 0 bis ${n-1}.`;
+})()}`);
 }
 function copyWochePrompt(){
   const klasse = $('#klasse').value || '1';
@@ -1549,7 +1990,18 @@ Zusätzliche Vorgaben der Lehrkraft:
 
 Rahmen:
 - 5 Tage: Montag bis Freitag
-- 6 Unterrichtsstunden pro Tag
+${(()=>{
+  const eff = getEffektiverStundenplan();
+  if(eff.type === 'fallback') return '- 6 Unterrichtsstunden pro Tag';
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const label = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+  const src = eff.type === 'custom' ? 'Eigener Stundenplan' : `Lehrplan-Standard ${eff.stufe}. Schulstufe`;
+  const lines = tage.map((t,i) => {
+    const f = (eff.plan[t]||[]).map(x => SUBJECTS[x]||x);
+    return f.length ? `  ${label[i]} (${f.length} Std): ${f.join(', ')}` : null;
+  }).filter(Boolean);
+  return `- ${src}:\n${lines.join('\n')}`;
+})()}
 - Lehrwerke: ${activeBooks()}
 - Die Planung soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Alle Felder müssen vollständig ausgefüllt werden.
@@ -1603,7 +2055,15 @@ Beispielformat:
   }
 ]
 
-Wichtig: genau 30 Einträge, tag 0 bis 4, stunde 0 bis 5.`);
+${(()=>{
+  const eff = getEffektiverStundenplan();
+  const tage = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const total = eff.type !== 'fallback'
+    ? tage.reduce((sum,t) => sum + (eff.plan[t]||[]).length, 0)
+    : 30;
+  const maxS = getMaxStunden();
+  return `Wichtig: genau ${total} Einträge gesamt. tag 0=Mo bis 4=Fr. stunde 0 bis ${maxS-1} (je nach Tag laut Stundenplan).`;
+})()}`);
 }
 function copyMonthPrompt(){
   const klasse = $('#klasse').value || '1';
@@ -1920,5 +2380,12 @@ async function importChildJson(){
 function closeModal(id){$('#'+id).classList.remove('open')} $$('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open')}))
 init();
 </script>
+<footer style="background:var(--ink);color:rgba(255,255,255,.4);text-align:center;padding:14px 20px;font-size:.72rem;margin-top:40px;display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap">
+  <span>© 2025 <a href="https://www.mentallions.at" target="_blank" style="color:var(--amber);text-decoration:none;font-weight:700">mentallions.at</a></span>
+  <span style="opacity:.4">|</span>
+  <span>🇪🇺 Datenspeicherung ausschließlich auf EU-Servern</span>
+  <span style="opacity:.4">|</span>
+  <a href="https://www.mentallions.at" target="_blank" style="color:rgba(255,255,255,.4);text-decoration:none">Impressum & Datenschutz</a>
+</footer>
 </body>
 </html>
