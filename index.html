@@ -693,10 +693,28 @@ function getMaxStunden(){
 }
 
 
-async function notifyNewRegistration(email) {
-  try {
-    await supabaseClient.from('registrations').insert([{ email, registered_at: new Date().toISOString(), notified: false }]);
-  } catch(e) { console.log('notify error:', e); }
+async function notifyNewRegistration(newUserEmail) {
+  const email = String(newUserEmail || '').trim().toLowerCase();
+  if (!email) return false;
+
+  const { error } = await supabaseClient
+    .from('registrations')
+    .upsert(
+      [{
+        email,
+        registered_at: new Date().toISOString(),
+        notified: false
+      }],
+      { onConflict: 'email' }
+    );
+
+  if (error) {
+    console.log('Registrierung konnte nicht gespeichert werden:', error);
+    return false;
+  }
+
+  console.log('Registrierung gespeichert/aktualisiert:', email);
+  return true;
 }
 
 function init(){
