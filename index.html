@@ -1765,12 +1765,40 @@ Antworte NUR mit gültigem JSON, ohne Erklärung, ohne Markdown:
 }`);
 }
 function copyDayPrompt(){
+  if(isWeekend(currentDay)){
+    toast('Bitte einen Schultag wählen.');
+    return;
+  }
+
   const klasse = $('#klasse').value || '1';
+  const dayIndex = (currentDay.getDay() + 6) % 7; // Mo=0 ... Fr=4
+  const tageLabels = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+  const faecher = getFaecherFuerTag(dayIndex) || [];
+  const eff = getEffektiverStundenplan();
+
+  let tagesrasterText = '';
+  let expectedCount = 0;
+
+  if(faecher.length){
+    faecher.forEach((fach, s) => {
+      tagesrasterText += `- Stunde ${s}: ${SUBJECTS[fach] || fach}\n`;
+      expectedCount++;
+    });
+  } else {
+    tagesrasterText = '- keine geplanten Stunden\n';
+  }
+
+  const quelleText =
+    eff.type === 'custom'
+      ? 'Verwende genau den hinterlegten Stundenplan dieser Klasse.'
+      : eff.type === 'lehrplan'
+        ? `Es ist kein eigener Stundenplan hinterlegt. Verwende genau dieses Tagesraster nach Lehrplan-Standard der ${eff.stufe}. Schulstufe.`
+        : 'Es ist kein Stundenplan hinterlegt. Plane sinnvoll und zurückhaltend ohne zusätzliche Fantasiestunden.';
 
   copyText(`Erstelle einen vollständigen Tagesplan für ${fmtLong(currentDay)} für eine ${klasse}. Klasse Volksschule in Österreich.
 
 Rahmen:
-${(()=>{const tagIdx=(currentDay.getDay()+6)%7; const f=getTagStundenplan(tagIdx); return f.length?"- Fächer laut Stundenplan: "+f.join(", "):"- 6 Unterrichtsstunden"})()}
+- Tag: ${tageLabels[dayIndex]}
 - Lehrwerke: ${activeBooks()}
 - Die Planung soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Für jede Stunde müssen alle Felder vollständig ausgefüllt werden.
@@ -1783,10 +1811,27 @@ ${(()=>{const tagIdx=(currentDay.getDay()+6)%7; const f=getTagStundenplan(tagIdx
 - Differenzierung muss wirklich umsetzbar sein, sowohl für Kinder mit Unterstützungsbedarf als auch für Kinder, die schon weiter sind.
 - Fächerübergreifende Verknüpfungen müssen sichtbar sein.
 - Ohne Handy.
+
+${quelleText}
+
+Tagesraster:
+${tagesrasterText}
 ${extraPrompt()}
 
-Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
+WICHTIG:
+- Antworte ausschließlich mit einem gültigen JSON-Array.
+- Schreibe keinen Einleitungstext.
+- Schreibe keine Erklärung.
+- Schreibe keine Überschrift.
+- Schreibe keine Markdown-Codeblöcke.
+- Schreibe keine drei Backticks.
+- Die Antwort muss direkt mit [ beginnen und mit ] enden.
+- Erzeuge genau so viele Einträge, wie im Tagesraster vorgesehen sind.
+- Plane nur die dort angegebenen Stunden.
+- Erzeuge keine zusätzlichen Stunden.
+- Verwende bei "stunde" genau die im Tagesraster genannten Stundenwerte.
 
+Beispielformat:
 [
   {
     "stunde": 0,
@@ -1810,7 +1855,7 @@ Antworte NUR mit gültigem JSON-Array, ohne Erklärung, ohne Markdown:
   }
 ]
 
-Wichtig: genau 6 Einträge, stunde 0 bis 5.`);
+Wichtig: genau ${expectedCount} Einträge.`);
 }
 function copyWochePrompt(){
   const klasse = $('#klasse').value || '1';
@@ -1839,11 +1884,41 @@ Zusätzliche Vorgaben der Lehrkraft:
 - Methodenwunsch: ${weekFocus.methodenwunsch || '-'}
 `;
 
+  const tageKeys = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+  const tageLabels = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+  const eff = getEffektiverStundenplan();
+
+  let wochenrasterText = '';
+  let expectedCount = 0;
+
+  tageKeys.forEach((tagKey, i) => {
+    const faecher = getFaecherFuerTag(i) || [];
+    wochenrasterText += `${tageLabels[i]}:\n`;
+
+    if(!faecher.length){
+      wochenrasterText += `- keine geplanten Stunden\n`;
+      return;
+    }
+
+    faecher.forEach((fach, s) => {
+      wochenrasterText += `- Stunde ${s}: ${SUBJECTS[fach] || fach}\n`;
+      expectedCount++;
+    });
+
+    wochenrasterText += `\n`;
+  });
+
+  const quelleText =
+    eff.type === 'custom'
+      ? 'Verwende genau den hinterlegten Stundenplan dieser Klasse.'
+      : eff.type === 'lehrplan'
+        ? `Es ist kein eigener Stundenplan hinterlegt. Verwende genau dieses Wochenraster nach Lehrplan-Standard der ${eff.stufe}. Schulstufe.`
+        : 'Es ist kein Stundenplan hinterlegt. Plane sinnvoll und zurückhaltend ohne zusätzliche Fantasiestunden.';
+
   copyText(`Erstelle einen vollständigen Wochenplan für KW ${getKW(mon)} für eine ${klasse}. Klasse Volksschule in Österreich.
 
 Rahmen:
 - 5 Tage: Montag bis Freitag
-${(()=>{const sp=getStundenplanText(); return sp ? "- Stundenplan dieser Klasse:\n"+sp.split("\n").map(l=>"  "+l).join("\n") : "- 6 Unterrichtsstunden pro Tag"})()}
 - Lehrwerke: ${activeBooks()}
 - Die Planung soll so formuliert sein, dass auch eine Anfängerin im Lehramt sofort damit arbeiten kann.
 - Alle Felder müssen vollständig ausgefüllt werden.
@@ -1857,8 +1932,12 @@ ${(()=>{const sp=getStundenplanText(); return sp ? "- Stundenplan dieser Klasse:
 - Fächerübergreifende Verknüpfungen müssen sichtbar sein.
 - Stelle fächerübergreifende Bezüge zwischen den ausgewählten Fächern und Themen her, sofern dies inhaltlich sinnvoll möglich ist.
 - Vermeide künstliche Verknüpfungen dort, wo keine sinnvolle Verbindung besteht.
-- Sinnvolle Fächerverteilung über die Woche hinweg.
 - Ohne Handy.
+
+${quelleText}
+
+Wochenraster:
+${wochenrasterText}
 ${weekFocusText}
 ${extraWeekFocusText}
 ${extraPrompt()}
@@ -1871,6 +1950,11 @@ WICHTIG:
 - Schreibe keine Markdown-Codeblöcke.
 - Schreibe keine drei Backticks.
 - Die Antwort muss direkt mit [ beginnen und mit ] enden.
+- Erzeuge genau so viele Einträge, wie im Wochenraster vorgesehen sind.
+- Plane nur die dort angegebenen Stunden.
+- Erzeuge keine zusätzlichen Stunden.
+- Verwende bei "tag" Montag=0, Dienstag=1, Mittwoch=2, Donnerstag=3, Freitag=4.
+- Verwende bei "stunde" genau die im Wochenraster genannten Stundenwerte.
 
 Beispielformat:
 [
@@ -1897,7 +1981,7 @@ Beispielformat:
   }
 ]
 
-Wichtig: genau 30 Einträge, tag 0 bis 4, stunde 0 bis 5.`);
+Wichtig: genau ${expectedCount} Einträge.`);
 }
 function copyMonthPrompt(){
   const klasse = $('#klasse').value || '1';
