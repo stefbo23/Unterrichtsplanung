@@ -463,6 +463,96 @@ function switchContext(){
 }
 function exportData(){const blob=new Blob([JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vs-planung-${dateKey(new Date())}.json`; a.click(); URL.revokeObjectURL(url); toast('Export erstellt ✓')}
 function importData(evt){const file=evt.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=e=>{try{const d=JSON.parse(e.target.result); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; $('#focus').value=d.focus||''; $('#optMethods').checked=d.optMethods!==false; $('#optPhases').checked=d.optPhases!==false; $('#optGen').checked=d.optGen!==false; if(d.klasse) $('#klasse').value=d.klasse; $('#schuljahr').value=schoolYear; saveState(); renderAll(); toast('Import erfolgreich ✓')}catch(err){alert('Import fehlgeschlagen: ungültige Datei')}}; r.readAsText(file)}
+async function loadMonthEntriesFromSupabase() {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !userData.user) return;
+
+  const { data, error } = await supabaseClient
+    .from('month_entries')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .eq('school_year', $('#schuljahr').value)
+    .eq('klasse', $('#klasse').value)
+    .order('von', { ascending: true });
+
+  if (error) {
+    console.log('loadMonthEntriesFromSupabase error:', error);
+    return;
+  }
+
+  monthEntries = (data || []).map(row => ({
+    id: row.id,
+    supabase_id: row.id,
+    fach: row.fach || '',
+    thema: row.thema || '',
+    von: row.von || '',
+    bis: row.bis || '',
+    kompetenzen: row.kompetenzen || '',
+    verknuepfung: row.verknuepfung || '',
+    notizen: row.notizen || ''
+  }));
+}
+
+async function loadYearEntriesFromSupabase() {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !userData.user) return;
+
+  const { data, error } = await supabaseClient
+    .from('year_entries')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .eq('school_year', $('#schuljahr').value)
+    .eq('klasse', $('#klasse').value)
+    .order('von', { ascending: true });
+
+  if (error) {
+    console.log('loadYearEntriesFromSupabase error:', error);
+    return;
+  }
+
+  yearEntries = (data || []).map(row => ({
+    id: row.id,
+    supabase_id: row.id,
+    fach: row.fach || '',
+    thema: row.thema || '',
+    von: row.von || '',
+    bis: row.bis || '',
+    kompetenzen: row.kompetenzen || '',
+    verknuepfung: row.verknuepfung || '',
+    notizen: row.notizen || ''
+  }));
+}
+
+async function loadChildrenFromSupabase() {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+  if (userError || !userData.user) return;
+
+  const { data, error } = await supabaseClient
+    .from('children')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .eq('school_year', $('#schuljahr').value)
+    .eq('klasse', $('#klasse').value)
+    .order('name', { ascending: true });
+
+  if (error) {
+    console.log('loadChildrenFromSupabase error:', error);
+    return;
+  }
+
+  children = (data || []).map(row => ({
+    id: row.id,
+    supabase_id: row.id,
+    name: row.name || '',
+    class: row.child_class || '',
+    books: row.books || '',
+    areas: row.areas || [],
+    desc: row.observations || '',
+    strength: row.strength || '',
+    measure: row.measure || '',
+    foerderplan: row.foerderplan || ''
+  }));
+}
 async function loadLessonsFromSupabase() {
   const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 
