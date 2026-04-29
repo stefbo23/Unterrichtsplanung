@@ -54,6 +54,9 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportData()">💾 Export</button>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="document.getElementById('importFile').click()">📂 Import</button>
     <button class="btn btn-sm btn-outline" id="loginBtn" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openLoginModal()">🔑 Login</button>
+    <button class="btn btn-sm" onclick="migrateAllToSupabase()">
+  🔄 Alles in Cloud speichern
+</button>
     <span id="authStatus" style="font-size:.75rem;color:rgba(255,255,255,.7)">nicht eingeloggt</span>
     <input type="file" id="importFile" accept=".json" style="display:none" />
   </div>
@@ -463,6 +466,92 @@ function switchContext(){
 }
 function exportData(){const blob=new Blob([JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vs-planung-${dateKey(new Date())}.json`; a.click(); URL.revokeObjectURL(url); toast('Export erstellt ✓')}
 function importData(evt){const file=evt.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=e=>{try{const d=JSON.parse(e.target.result); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; $('#focus').value=d.focus||''; $('#optMethods').checked=d.optMethods!==false; $('#optPhases').checked=d.optPhases!==false; $('#optGen').checked=d.optGen!==false; if(d.klasse) $('#klasse').value=d.klasse; $('#schuljahr').value=schoolYear; saveState(); renderAll(); toast('Import erfolgreich ✓')}catch(err){alert('Import fehlgeschlagen: ungültige Datei')}}; r.readAsText(file)}
+async function migrateAllToSupabase() {
+  const { data: userData } = await supabaseClient.auth.getUser();
+  if (!userData.user) {
+    alert("Bitte zuerst einloggen!");
+    return;
+  }
+
+  const user_id = userData.user.id;
+  const school_year = $('#schuljahr').value;
+  const klasse = $('#klasse').value;
+
+  // LESSONS
+  for (const key in lessons) {
+    const l = lessons[key];
+    if (!l) continue;
+
+    await supabaseClient.from('lessons').upsert({
+      user_id,
+      school_year,
+      klasse,
+      lesson_key: key,
+      fach: l.fach || '',
+      thema: l.thema || '',
+      kompetenz: l.kompetenz || '',
+      verknuepfung: l.verknuepfung || '',
+      mindestziel: l.mindestziel || '',
+      diff_unten: l.diff_unten || '',
+      diff_oben: l.diff_oben || '',
+      sozialformen: l.sozialformen || '',
+      methoden: l.methoden || [],
+      phasen: l.phasen || [],
+      material: l.material || ''
+    });
+  }
+
+  // MONTH
+  for (const m of monthEntries) {
+    await supabaseClient.from('month_entries').upsert({
+      user_id,
+      school_year,
+      klasse,
+      fach: m.fach,
+      thema: m.thema,
+      von: m.von,
+      bis: m.bis,
+      kompetenzen: m.kompetenzen,
+      verknuepfung: m.verknuepfung,
+      notizen: m.notizen
+    });
+  }
+
+  // YEAR
+  for (const y of yearEntries) {
+    await supabaseClient.from('year_entries').upsert({
+      user_id,
+      school_year,
+      klasse,
+      fach: y.fach,
+      thema: y.thema,
+      von: y.von,
+      bis: y.bis,
+      kompetenzen: y.kompetenzen,
+      verknuepfung: y.verknuepfung,
+      notizen: y.notizen
+    });
+  }
+
+  // CHILDREN
+  for (const c of children) {
+    await supabaseClient.from('children').upsert({
+      user_id,
+      school_year,
+      klasse,
+      name: c.name,
+      child_class: c.class,
+      books: c.books,
+      areas: c.areas,
+      observations: c.desc,
+      strength: c.strength,
+      measure: c.measure,
+      foerderplan: c.foerderplan
+    });
+  }
+
+  alert("Migration fertig! 🎉");
+}
 async function loadMonthEntriesFromSupabase() {
   const { data: userData, error: userError } = await supabaseClient.auth.getUser();
   if (userError || !userData.user) return;
