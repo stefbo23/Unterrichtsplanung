@@ -271,7 +271,7 @@ async function testSignIn() {
 
   closeModal('loginModal');
   updateAuthStatus();
-  loadLessonsFromSupabase();
+  await loadAllFromSupabase();
   toast('Willkommen zurück! ✓');
 }
   async function signOutUser() {
@@ -552,6 +552,14 @@ async function loadChildrenFromSupabase() {
     measure: row.measure || '',
     foerderplan: row.foerderplan || ''
   }));
+}
+async function loadAllFromSupabase() {
+  await loadLessonsFromSupabase();
+  await loadMonthEntriesFromSupabase();
+  await loadYearEntriesFromSupabase();
+  await loadChildrenFromSupabase();
+  await loadSettingsFromSupabase();
+  renderAll();
 }
 async function loadLessonsFromSupabase() {
   const { data: userData, error: userError } = await supabaseClient.auth.getUser();
@@ -900,9 +908,14 @@ function init(){
   loadStundenplaene();
 
   $('#schuljahr').value = schoolYear;
-  renderAll();
-  updateAuthStatus();
-  loadLessonsFromSupabase();
+renderAll();
+updateAuthStatus();
+
+supabaseClient.auth.getUser().then(async ({ data, error }) => {
+  if (data && data.user) {
+    await loadAllFromSupabase();
+  }
+});
 }
 function fillSubjectSelects(){const html='<option value="">– wählen –</option>'+Object.entries(SUBJECTS).map(([k,v])=>`<option value="${k}">${v}</option>`).join(''); ['lfach','pfach'].forEach(id=>$("#"+id).innerHTML=html)}
 function buildMethods(){$('#methodGrid').innerHTML=METHODS.map(m=>`<div class="method" data-method="${m}">${m}</div>`).join(''); $('#methodGrid').addEventListener('click',e=>{const c=e.target.closest('.method'); if(!c) return; c.classList.toggle('on'); const m=c.dataset.method; if(c.classList.contains('on')){if(!selectedMethods.includes(m)) selectedMethods.push(m)}else selectedMethods=selectedMethods.filter(x=>x!==m)})}
