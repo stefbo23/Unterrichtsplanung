@@ -8,7 +8,18 @@
 :root{--ink:#1A1612;--paper:#FFFDF7;--bg:#F5F0E8;--border:#D9D3C7;--muted:#6B6358;--green:#4A7C6F;--green-l:#EBF3F1;--amber:#D4A843;--amber-l:#FDF6E3;--red:#C8523A;--blue:#3A7BA7;--gray:#888780}
 *{box-sizing:border-box;margin:0;padding:0} body{font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
 header{background:var(--ink);color:#fff;padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap} h1{font-size:1.1rem} h1 span{color:var(--amber)}
-.sel{background:rgba(255,255,255,.08);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:6px;padding:6px 10px}
+.sel{
+  background:rgba(255,255,255,.95);
+  color:#1A1612;
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:6px;
+  padding:6px 10px;
+}
+
+.sel option{
+  color:#1A1612;
+  background:#fff;
+}
 .tabs{display:flex;background:var(--ink);padding:0 16px;overflow:auto;border-bottom:2px solid var(--border)} .tab{padding:10px 14px;color:rgba(255,255,255,.55);cursor:pointer;white-space:nowrap;border-bottom:2px solid transparent}.tab.on{color:var(--amber);border-bottom-color:var(--amber)}
 main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{display:block}
 .note{background:var(--amber-l);border:1.5px solid var(--amber);border-radius:10px;padding:10px 12px;font-size:.82rem;line-height:1.45;margin-bottom:14px}
