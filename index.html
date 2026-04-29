@@ -654,6 +654,7 @@ async function loadAllFromSupabase() {
   await loadMonthEntriesFromSupabase();
   await loadYearEntriesFromSupabase();
   await loadChildrenFromSupabase();
+  await loadWeekFocusFromSupabase();
   await loadSettingsFromSupabase();
   renderAll();
 }
@@ -1087,7 +1088,7 @@ function openWeekFocusModal(){
   $('#weekFocusModal').classList.add('open');
 }
 
-function saveWeekFocus(){
+async function saveWeekFocus(){
   const subjects = {};
   const entries = getCurrentMonthEntriesForWeekFocus();
 
@@ -1118,7 +1119,10 @@ function saveWeekFocus(){
     methodenwunsch: $('#wfMethodenwunsch').value || ''
   };
 
-  weekFocusByWeek[currentWeekKey()] = JSON.parse(JSON.stringify(weekFocus));
+  const key = currentWeekKey();
+  weekFocusByWeek[key] = JSON.parse(JSON.stringify(weekFocus));
+
+  await saveWeekFocusToSupabase(key, weekFocus);
 
   saveState();
   renderWeekFocusSummary();
@@ -1161,9 +1165,27 @@ function renderWeekFocusSummary(){
 
   box.innerHTML = html;
 }
-function clearWeekFocus(){
+async function clearWeekFocus(){
+  const key = currentWeekKey();
+
   weekFocus = emptyWeekFocus();
-  delete weekFocusByWeek[currentWeekKey()];
+  delete weekFocusByWeek[key];
+
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+  if (userData && userData.user) {
+    const { error } = await supabaseClient
+      .from('week_focus_entries')
+      .delete()
+      .eq('user_id', userData.user.id)
+      .eq('school_year', $('#schuljahr').value)
+      .eq('klasse', $('#klasse').value)
+      .eq('week_key', key);
+
+    if (error) {
+      console.log('clearWeekFocus delete error:', error);
+    }
+  }
+
   saveState();
   renderWeekFocusSummary();
   toast('Wochenschwerpunkte gelöscht');
@@ -1488,6 +1510,67 @@ function showChild(id){
 function openLessonModal(key,ti,si,d){editingLessonKey=key; const L=lessons[key]||{}; $('#lessonModal').classList.add('open'); $('#lessonModalTitle').textContent=`${si+1}. Stunde`; $('#lessonModalSub').textContent=`${d?fmtDate(d):''} · ${TIMES[si]||''}`; $('#lfach').value=L.fach||''; $('#lthema').value=L.thema||''; $('#lkomp').value=L.kompetenz||''; $('#lverk').value=L.verknuepfung||''; $('#lmgoal').value=L.mindestziel||''; $('#ldown').value=L.diffUnten||''; $('#lup').value=L.diffOben||''; $('#lsocial').value=L.sozialformen||''; $('#lmat').value=L.material||''; $('#lessonDelete').style.display=L.fach?'':'none'; selectedMethods=Array.isArray(L.methoden)?[...L.methoden]:[]; $$('.method').forEach(m=>m.classList.toggle('on',selectedMethods.includes(m.dataset.method))); phaseData=Array.isArray(L.phasen)&&L.phasen.length?JSON.parse(JSON.stringify(L.phasen)):[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList(); $('#lessonImport').style.display='none'; $('#lessonImportText').value=''}
 function renderPhaseList(){const box=$('#phaseList'); box.innerHTML=''; phaseData.forEach((p,i)=>{const row=document.createElement('div'); row.className='phase-row'; row.innerHTML=`<div class="phase-head"><div class="phase-title" style="background:${phaseColor(p.name,i)}">${p.name}</div><input class="mins" type="number" value="${p.min||''}" min="1" max="60" oninput="phaseData[${i}].min=+this.value" placeholder="Min"></div><div class="phase-grid"><textarea oninput="phaseData[${i}].beschreibung=this.value" placeholder="Was passiert genau in dieser Phase? Was sagt oder macht die Lehrperson? Was tun die Kinder?">${p.beschreibung||''}</textarea><input value="${p.sozialform||''}" oninput="phaseData[${i}].sozialform=this.value" placeholder="Sozialform frei wählen"><textarea oninput="phaseData[${i}].differenzierung=this.value" placeholder="Differenzierung in dieser Phase">${p.differenzierung||''}</textarea></div>`; box.appendChild(row)})}
 function addPhase(){resetAviva()} function resetAviva(){phaseData=[{name:'Ankommen',beschreibung:'',sozialform:'',differenzierung:'',min:5},{name:'Vorwissen aktivieren',beschreibung:'',sozialform:'',differenzierung:'',min:8},{name:'Informieren',beschreibung:'',sozialform:'',differenzierung:'',min:10},{name:'Verarbeiten',beschreibung:'',sozialform:'',differenzierung:'',min:15},{name:'Auswerten',beschreibung:'',sozialform:'',differenzierung:'',min:7}]; renderPhaseList()}
+async function loadWeekFocusFromSupabase() {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) return;
+
+  const { data, error } = await supabaseClient
+    .from('week_focus_entries')
+    .select('*')
+    .eq('user_id', userData.user.id)
+    .eq('school_year', $('#schuljahr').value)
+    .eq('klasse', $('#klasse').value);
+
+  if (error) {
+    console.log('loadWeekFocusFromSupabase error:', error);
+    return;
+  }
+
+  weekFocusByWeek = {};
+
+  (data || []).forEach(row => {
+    weekFocusByWeek[row.week_key] = {
+      subjects: row.subjects || {},
+      common_focus: row.common_focus || '',
+      extra_focus: row.extra_focus || '',
+      foerderfokus: row.foerderfokus || '',
+      methodenwunsch: row.methodenwunsch || ''
+    };
+  });
+
+  weekFocus = weekFocusByWeek[currentWeekKey()] || emptyWeekFocus();
+}
+async function saveWeekFocusToSupabase(weekKey, data) {
+  const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+
+  if (userError || !userData.user) {
+    return false;
+  }
+
+  const payload = {
+    user_id: userData.user.id,
+    school_year: $('#schuljahr').value,
+    klasse: $('#klasse').value,
+    week_key: weekKey,
+    subjects: data.subjects || {},
+    common_focus: data.common_focus || '',
+    extra_focus: data.extra_focus || '',
+    foerderfokus: data.foerderfokus || '',
+    methodenwunsch: data.methodenwunsch || ''
+  };
+
+  const { error } = await supabaseClient
+    .from('week_focus_entries')
+    .upsert(payload, { onConflict: 'user_id,school_year,klasse,week_key' });
+
+  if (error) {
+    console.log('saveWeekFocusToSupabase error:', error);
+    return false;
+  }
+
+  return true;
+}
 async function saveLessonToSupabase(lessonKey, lessonData) {
   const { data: userData, error: userError } = await supabaseClient.auth.getUser();
 
