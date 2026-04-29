@@ -458,11 +458,18 @@ function loadState(){
     currentDay = new Date();
   }
 }
-function switchContext(){
+async function switchContext(){
   schoolYear = $('#schuljahr').value;
-  loadState();
-  renderAll();
-  renderSidebar();
+
+  const { data, error } = await supabaseClient.auth.getUser();
+
+  if (data && data.user) {
+    await loadAllFromSupabase();
+  } else {
+    loadState();
+    renderAll();
+    renderSidebar();
+  }
 }
 function exportData(){const blob=new Blob([JSON.stringify({lessons,monthEntries,yearEntries,children,selectedBooks,hoursCfg,schoolYear,monthPos,focus:$('#focus').value,optMethods:$('#optMethods').checked,optPhases:$('#optPhases').checked,optGen:$('#optGen').checked,klasse:$('#klasse').value},null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`vs-planung-${dateKey(new Date())}.json`; a.click(); URL.revokeObjectURL(url); toast('Export erstellt ✓')}
 function importData(evt){const file=evt.target.files[0]; if(!file) return; const r=new FileReader(); r.onload=e=>{try{const d=JSON.parse(e.target.result); lessons=d.lessons||{}; monthEntries=d.monthEntries||[]; yearEntries=d.yearEntries||[]; children=d.children||[]; selectedBooks=d.selectedBooks||selectedBooks; hoursCfg=d.hoursCfg||hoursCfg; schoolYear=d.schoolYear||schoolYear; monthPos=d.monthPos||0; $('#focus').value=d.focus||''; $('#optMethods').checked=d.optMethods!==false; $('#optPhases').checked=d.optPhases!==false; $('#optGen').checked=d.optGen!==false; if(d.klasse) $('#klasse').value=d.klasse; $('#schuljahr').value=schoolYear; saveState(); renderAll(); toast('Import erfolgreich ✓')}catch(err){alert('Import fehlgeschlagen: ungültige Datei')}}; r.readAsText(file)}
@@ -963,16 +970,16 @@ function init(){
     renderView(t.dataset.view);
   });
 
-  $('#klasse').addEventListener('change', ()=>{
-    switchContext();
-    saveState();
-  });
+  $('#klasse').addEventListener('change', async ()=>{
+  await switchContext();
+  saveState();
+});
 
-  $('#schuljahr').addEventListener('change', ()=>{
-    schoolYear = $('#schuljahr').value;
-    switchContext();
-    saveState();
-  });
+$('#schuljahr').addEventListener('change', async ()=>{
+  schoolYear = $('#schuljahr').value;
+  await switchContext();
+  saveState();
+});
 
   $('#dayPicker').addEventListener('change', ()=>{
     const v = $('#dayPicker').value;
