@@ -1912,11 +1912,19 @@ async function saveSettingsToSupabase() {
     currentDay = new Date(data.current_day + 'T12:00:00');
   }
 
-  // Stundenplan laden wenn vorhanden
-  if (data.stundenplan && Object.keys(data.stundenplan).length > 0) {
-    const spKey = getStundenplanKey();
-    stundenplaene[spKey] = data.stundenplan;
-  }
+  const spKey = getStundenplanKey();
+
+if (data.stundenplan && Object.keys(data.stundenplan).length > 0) {
+  stundenplaene[spKey] = data.stundenplan;
+} else {
+  stundenplaene[spKey] = {
+    montag:['','','','','',''],
+    dienstag:['','','','','',''],
+    mittwoch:['','','','','',''],
+    donnerstag:['','','','','',''],
+    freitag:['','','','','','']
+  };
+}
 
   buildBookSettings();
   buildHourSettings();
