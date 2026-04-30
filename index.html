@@ -461,6 +461,10 @@ function loadState(){
 async function switchContext(){
   schoolYear = $('#schuljahr').value;
 
+  const spKey = getStundenplanKey();
+  stundenplaene[spKey] = emptyStundenplan();
+  renderStundenplan();
+
   const { data, error } = await supabaseClient.auth.getUser();
 
   if (data && data.user) {
@@ -769,6 +773,16 @@ function resetStundenplan(){
   };
   renderStundenplan();
   toast('Stundenplan zurückgesetzt');
+}
+
+  function emptyStundenplan(){
+  return {
+    montag:['','','','','',''],
+    dienstag:['','','','','',''],
+    mittwoch:['','','','','',''],
+    donnerstag:['','','','','',''],
+    freitag:['','','','','','']
+  };
 }
 
 function renderStundenplan(){
