@@ -711,48 +711,70 @@ function getStundenplanKey(){
 
 function getStundenplan(){
   var key = getStundenplanKey();
-  return stundenplaene[key] || {montag:[],dienstag:[],mittwoch:[],donnerstag:[],freitag:[]};
+  var raw = stundenplaene[key];
+
+  var empty = {
+    montag:['','','','','',''],
+    dienstag:['','','','','',''],
+    mittwoch:['','','','','',''],
+    donnerstag:['','','','','',''],
+    freitag:['','','','','','']
+  };
+
+  if(!raw) return JSON.parse(JSON.stringify(empty));
+
+  ['montag','dienstag','mittwoch','donnerstag','freitag'].forEach(function(tag){
+    if(!Array.isArray(raw[tag])) raw[tag] = [];
+    raw[tag] = raw[tag].slice(0,6);
+    while(raw[tag].length < 6) raw[tag].push('');
+  });
+
+  return raw;
 }
 
 function saveStundenplan(){
   var key = getStundenplanKey();
   var TAGE = ['montag','dienstag','mittwoch','donnerstag','freitag'];
   var sp = {montag:[],dienstag:[],mittwoch:[],donnerstag:[],freitag:[]};
+
   TAGE.forEach(function(tag){
-    var col = document.getElementById('spcol-'+tag);
-    if(!col) return;
-    col.querySelectorAll('.sp-chip.on').forEach(function(c){
-      sp[tag].push(c.dataset.fach);
-    });
+    for(let s=0; s<6; s++){
+      var sel = document.getElementById('sp-' + tag + '-' + s);
+      sp[tag].push(sel ? (sel.value || '') : '');
+    }
   });
+
   stundenplaene[key] = sp;
+
   try{
     var store = JSON.parse(localStorage.getItem('vs_all')||'{}');
     if(!store.stundenplaene) store.stundenplaene = {};
     store.stundenplaene[key] = sp;
     localStorage.setItem('vs_all', JSON.stringify(store));
   }catch(e){}
+
   saveSettingsToSupabase();
+  renderStundenplan();
   toast('Stundenplan gespeichert ✓');
 }
 
 function resetStundenplan(){
   var key = getStundenplanKey();
-  stundenplaene[key] = {montag:[],dienstag:[],mittwoch:[],donnerstag:[],freitag:[]};
+  stundenplaene[key] = {
+    montag:['','','','','',''],
+    dienstag:['','','','','',''],
+    mittwoch:['','','','','',''],
+    donnerstag:['','','','','',''],
+    freitag:['','','','','','']
+  };
   renderStundenplan();
   toast('Stundenplan zurückgesetzt');
 }
 
-function loadStundenplaene(){
-  try{
-    var store = JSON.parse(localStorage.getItem('vs_all')||'{}');
-    stundenplaene = store.stundenplaene || {};
-  }catch(e){ stundenplaene = {}; }
-}
-
 function renderStundenplan(){
   var klasse = $('#klasse').value || '1a';
-  var label = klasse[0]+'. Klasse '+klasse[1].toUpperCase();
+  var school = $('#schuljahr').value || schoolYear;
+  var label = klasse[0]+'. Klasse '+klasse[1].toUpperCase()+' · '+school;
   document.getElementById('spKlasseLabel').textContent = label;
 
   var sp = getStundenplan();
@@ -763,32 +785,87 @@ function renderStundenplan(){
   var TAGE_LABEL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
   var FAECHER = Object.entries(SUBJECTS).filter(function(e){ return e[0] !== 'uebergreifend'; });
 
-  var out = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">';
-  TAGE.forEach(function(tag, ti){
-    var sel = sp[tag] || [];
-    out += '<div>';
-    out += '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid var(--border)">'+TAGE_LABEL[ti]+'</div>';
-    out += '<div id="spcol-'+tag+'" style="display:flex;flex-direction:column;gap:5px">';
-    // Erst ausgewählte in Reihenfolge
-    sel.forEach(function(fach){
-      var col = SCOL[fach] || '#888';
-      var label = SUBJECTS[fach] || fach;
-      out += '<div class="sp-chip on" data-fach="'+fach+'" onclick="toggleSpChip(this)" style="padding:7px 9px;border-radius:8px;font-size:.76rem;cursor:pointer;font-weight:500;background:'+col+';color:white;border:1.5px solid '+col+'">'+label+'</div>';
-    });
-    // Dann restliche Fächer
+  function buildOptions(selected){
+    var out = '<option value="">– frei –</option>';
     FAECHER.forEach(function(entry){
       var fach = entry[0];
       var label = entry[1];
-      if(sel.includes(fach)) return;
-      out += '<div class="sp-chip" data-fach="'+fach+'" onclick="toggleSpChip(this)" style="padding:7px 9px;border-radius:8px;font-size:.76rem;cursor:pointer;background:var(--bg);border:1.5px solid var(--border);color:var(--muted)">'+label+'</div>';
+      out += '<option value="'+fach+'" '+(selected===fach?'selected':'')+'>'+label+'</option>';
     });
+    return out;
+  }
+
+  var out = '<div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">';
+  TAGE.forEach(function(tag, ti){
+    var slots = Array.isArray(sp[tag]) ? sp[tag] : [];
+    while(slots.length < 6) slots.push('');
+
+    out += '<div>';
+    out += '<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid var(--border)">'+TAGE_LABEL[ti]+'</div>';
+    out += '<div style="display:flex;flex-direction:column;gap:6px">';
+
+    for(let s=0; s<6; s++){
+      out += `
+        <div style="background:var(--paper);border:1.5px solid var(--border);border-radius:8px;padding:8px">
+          <div style="font-size:.68rem;color:var(--muted);margin-bottom:4px">${s+1}. Stunde</div>
+          <select id="sp-${tag}-${s}" onchange="renderStundenplanWarnings()" style="width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;background:#fff">
+            ${buildOptions(slots[s] || '')}
+          </select>
+        </div>
+      `;
+    }
+
     out += '</div>';
-    // Stundenzahl anzeigen
-    out += '<div style="font-size:.7rem;color:var(--muted);margin-top:6px;text-align:center">'+sel.length+' Stunden</div>';
+    out += '<div id="warn-'+tag+'" style="margin-top:8px;font-size:.72rem;color:var(--red)"></div>';
     out += '</div>';
   });
   out += '</div>';
+
+  out += `
+    <div style="margin-top:14px;font-size:.75rem;color:var(--muted)">
+      Eigener Stundenplan für <b>${klasse}</b> im Schuljahr <b>${school}</b>.
+      Mehrfachbelegungen eines Fachs an einem Tag sind erlaubt, bei ungewöhnlichen Verteilungen erscheint nur ein Hinweis.
+    </div>
+  `;
+
   grid.innerHTML = out;
+  renderStundenplanWarnings();
+}
+function renderStundenplanWarnings(){
+  var TAGE = ['montag','dienstag','mittwoch','donnerstag','freitag'];
+
+  TAGE.forEach(function(tag){
+    var counts = {};
+    for(let s=0; s<6; s++){
+      var sel = document.getElementById('sp-' + tag + '-' + s);
+      var fach = sel ? sel.value : '';
+      if(!fach) continue;
+      counts[fach] = (counts[fach] || 0) + 1;
+    }
+
+    var warnings = [];
+    Object.entries(counts).forEach(function(entry){
+      var fach = entry[0];
+      var count = entry[1];
+      if(count >= 3){
+        warnings.push((SUBJECTS[fach] || fach) + ' ist ' + count + '× an diesem Tag eingetragen.');
+      }
+    });
+
+    var box = document.getElementById('warn-' + tag);
+    if(box){
+      box.innerHTML = warnings.length
+        ? 'Hinweis: ' + warnings.join(' ')
+        : '';
+    }
+  });
+}
+
+function loadStundenplaene(){
+  try{
+    var store = JSON.parse(localStorage.getItem('vs_all')||'{}');
+    stundenplaene = store.stundenplaene || {};
+  }catch(e){ stundenplaene = {}; }
 }
 
 function toggleSpChip(el){
@@ -828,13 +905,15 @@ function getStundenplanText(){
   var TAGE = ['montag','dienstag','mittwoch','donnerstag','freitag'];
   var TAGE_LABEL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
   var lines = [];
+
   TAGE.forEach(function(tag, i){
-    var faecher = sp[tag] || [];
+    var faecher = (sp[tag] || []).filter(Boolean);
     if(faecher.length > 0){
       var labels = faecher.map(function(f){ return SUBJECTS[f]||f; });
       lines.push(TAGE_LABEL[i]+': '+labels.join(', '));
     }
   });
+
   return lines.length ? lines.join('\n') : null;
 }
 
@@ -842,8 +921,7 @@ function getTagStundenplan(dayIndex){
   var sp = getStundenplan();
   var tagMap = {0:'montag',1:'dienstag',2:'mittwoch',3:'donnerstag',4:'freitag'};
   var tag = tagMap[dayIndex];
-  var faecher = sp[tag] || [];
-  return faecher.map(function(f){ return SUBJECTS[f]||f; });
+  return (sp[tag] || []).filter(Boolean).map(function(f){ return SUBJECTS[f]||f; });
 }
 
 // ════════════════════════════════════════
