@@ -53,8 +53,7 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
     <select class="sel" id="schuljahr"></select>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="exportData()">💾 Export</button>
     <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="document.getElementById('importFile').click()">📂 Import</button>
-    <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openWelcomeModal()">❓ Hilfe</button>
-    <button class="btn btn-sm btn-outline" style="color:#1A1612;background:#fff;border-color:rgba(255,255,255,.3)" onclick="resetWelcomeModal()">↺ Einführung</button>
+    <button class="btn btn-sm btn-outline" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openWelcomeModal(true)">❓ Hilfe</button>
     <button class="btn btn-sm btn-outline" id="loginBtn" style="color:#fff;border-color:rgba(255,255,255,.3)" onclick="openLoginModal()">🔑 Login</button>
     <button class="btn btn-sm" onclick="migrateAllToSupabase()">
   🔄 Alles in Cloud speichern
@@ -679,8 +678,12 @@ function printHtmlDocument(title, bodyHtml){
   printHtmlDocument('Einzelstunde', html);
 }
 function openWelcomeModal(){
+  function openWelcomeModal(force = false){
   const hidden = localStorage.getItem('vs_hide_welcome');
-  if(hidden === '1') return;
+  if(hidden === '1' && !force) return;
+  const el = document.getElementById('welcomeModal');
+  if(el) el.classList.add('open');
+}
   const el = document.getElementById('welcomeModal');
   if(el) el.classList.add('open');
 }
