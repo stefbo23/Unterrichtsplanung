@@ -2566,7 +2566,71 @@ function copyChildPrompt(id){
   copyText(prompt);
 }
 function openImport(id){$('#'+id).classList.add('open')} function toggleImport(id){const el=$('#'+id); el.style.display=el.style.display==='block'?'none':'block'}
-function importDayJson(){const t=$('#importDayText').value.trim(); if(!t) return toast('Bitte JSON einfügen'); try{const arr=JSON.parse(t); arr.forEach(e=>{let stunde=Number(e.stunde); if(stunde>=1&&stunde<=6) stunde=stunde-1; if(Number.isNaN(stunde)||stunde<0||stunde>5) return; lessons[`${dateKey(currentDay)}_${stunde}`]={fach:e.fach||'',thema:e.thema||'',kompetenz:e.kompetenz||'',verknuepfung:e.verknuepfung||'',mindestziel:e.mindestziel||'',diffUnten:e.differenzierung_unten||'',diffOben:e.differenzierung_oben||'',sozialformen:Array.isArray(e.sozialformen)?e.sozialformen.join(', '):(e.sozialformen||''),methoden:e.methoden||[],phasen:e.phasen||[],material:e.material||''}}); saveState(); closeModal('importDay'); renderWeek(); renderTag(); toast('Tagesplan übernommen ✓')}catch(e){alert('Ungültiges JSON für Tagesplan.')}}
+function cleanJsonText(raw, expectedType = 'array'){
+  let t = String(raw || '').trim();
+
+  if(!t) return t;
+
+  t = t.replace(/^```json\s*/i, '');
+  t = t.replace(/^```\s*/i, '');
+  t = t.replace(/\s*```$/i, '');
+  t = t.trim();
+
+  if(expectedType === 'array'){
+    const start = t.indexOf('[');
+    const end = t.lastIndexOf(']');
+    if(start !== -1 && end !== -1 && end > start){
+      t = t.slice(start, end + 1);
+    }
+  }
+
+  if(expectedType === 'object'){
+    const start = t.indexOf('{');
+    const end = t.lastIndexOf('}');
+    if(start !== -1 && end !== -1 && end > start){
+      t = t.slice(start, end + 1);
+    }
+  }
+
+  return t.trim();
+}
+function importDayJson(){
+  let t = $('#importDayText').value.trim();
+  if(!t) return toast('Bitte JSON einfügen');
+
+  try{
+    t = cleanJsonText(t, 'array');
+    const arr = JSON.parse(t);
+
+    arr.forEach(e=>{
+      let stunde = Number(e.stunde);
+      if(stunde >= 1 && stunde <= 6) stunde = stunde - 1;
+      if(Number.isNaN(stunde) || stunde < 0 || stunde > 5) return;
+
+      lessons[`${dateKey(currentDay)}_${stunde}`] = {
+        fach: e.fach || '',
+        thema: e.thema || '',
+        kompetenz: e.kompetenz || '',
+        verknuepfung: e.verknuepfung || '',
+        mindestziel: e.mindestziel || '',
+        diffUnten: e.differenzierung_unten || '',
+        diffOben: e.differenzierung_oben || '',
+        sozialformen: Array.isArray(e.sozialformen) ? e.sozialformen.join(', ') : (e.sozialformen || ''),
+        methoden: e.methoden || [],
+        phasen: e.phasen || [],
+        material: e.material || ''
+      };
+    });
+
+    saveState();
+    closeModal('importDay');
+    renderWeek();
+    renderTag();
+    toast('Tagesplan übernommen ✓');
+  }catch(e){
+    alert('Ungültiges JSON für Tagesplan. Bitte nur den JSON-Teil einfügen.');
+  }
+}
 function importWeekJson(){
   let t = $('#importWeekText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
@@ -2621,12 +2685,12 @@ function importWeekJson(){
   }catch(e){
     alert('Ungültiges JSON für Wochenplan.');
   }
-}
-async function importMonthJson(){
-  const t = $('#importMonthText').value.trim();
+}async function importMonthJson(){
+  let t = $('#importMonthText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
 
   try{
+    t = cleanJsonText(t, 'array');
     const arr = JSON.parse(t);
 
     for (const e of arr) {
@@ -2654,7 +2718,7 @@ async function importMonthJson(){
     renderMonth();
     toast('Monatsplanung übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON für Monatsplanung.');
+    alert('Ungültiges JSON für Monatsplanung. Bitte nur den JSON-Teil einfügen.');
   }
 }
 function normalizeFach(fach){
@@ -2703,10 +2767,11 @@ function normalizeExistingPlanFaecher(){
   }
 }
 async function importYearJson(){
-  const t = $('#importYearText').value.trim();
+  let t = $('#importYearText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
 
   try{
+    t = cleanJsonText(t, 'array');
     const arr = JSON.parse(t);
 
     for (const e of arr) {
@@ -2734,7 +2799,7 @@ async function importYearJson(){
     renderYear();
     toast('Jahresplan übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON für Jahresplan.');
+    alert('Ungültiges JSON für Jahresplan. Bitte nur den JSON-Teil einfügen.');
   }
 }
 function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffset=0; renderWeek()}
@@ -2746,7 +2811,9 @@ async function importChildJson(){
   if(!text) return toast('Bitte JSON einfügen');
 
   try{
+    text = cleanJsonText(text, 'object');
     var d = JSON.parse(text);
+
     var id = document.getElementById('importChild').dataset.childId;
     var c = children.find(function(x){ return String(x.id) === String(id); });
     if(!c) return toast('Kind nicht gefunden');
@@ -2771,7 +2838,7 @@ async function importChildJson(){
     showChild(id);
     toast('Förderplan übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON. Nur den JSON-Teil aus Claude kopieren.');
+    alert('Ungültiges JSON. Bitte nur den JSON-Teil aus der KI-Antwort einfügen.');
   }
 }
 function closeModal(id){$('#'+id).classList.remove('open')} $$('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open')}))
