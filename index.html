@@ -2139,9 +2139,14 @@ async function saveLesson(){
     material: $('#lmat').value || ''
   };
 
-  lessons[editingLessonKey] = lessonData;
+  const ok = await saveLessonToSupabase(editingLessonKey, lessonData);
 
-  await saveLessonToSupabase(editingLessonKey, lessonData);
+  if(!ok){
+    toast('Stunde konnte nicht in der Cloud gespeichert werden');
+    return;
+  }
+
+  lessons[editingLessonKey] = lessonData;
 
   saveState();
   closeModal('lessonModal');
