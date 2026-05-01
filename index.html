@@ -96,7 +96,14 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
   4. Nur den JSON-Teil der Antwort kopieren<br>
   5. Über <b>„📥 JSON einfügen“</b> übernehmen
 </div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeMonth(-1)">← zurück</button><span class="label" id="monthLabel"></span><button class="btn btn-outline btn-sm" onclick="changeMonth(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyMonthPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importMonth')">📥 JSON einfügen</button><button class="btn btn-outline btn-sm" onclick="openPlanModal('month')">+ Eintrag</button></div><div class="month-layout"><div class="months" id="monthList"></div><div class="month-pane" id="monthPane"></div></div></div>
-  <div class="view" id="view-jahr"><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(-1)">← zurück</button><span class="label" id="yearLabel"></span><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyYearPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importYear')">📥 JSON einfügen</button></div><div class="year-grid" id="yearGrid"></div></div>
+  <div class="view" id="view-jahr"><div class="note">
+  <b>So funktioniert die Jahresplanung:</b><br>
+  1. Klasse und Schuljahr wählen<br>
+  2. Auf <b>„📋 Prompt kopieren“</b> klicken<br>
+  3. Prompt in ChatGPT oder Claude einfügen<br>
+  4. Nur den JSON-Teil zurückkopieren<br>
+  5. Über <b>„📥 JSON einfügen“</b> übernehmen
+</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(-1)">← zurück</button><span class="label" id="yearLabel"></span><button class="btn btn-outline btn-sm" onclick="changeSchoolYear(1)">weiter →</button><button class="btn btn-green btn-sm" onclick="copyYearPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importYear')">📥 JSON einfügen</button></div><div class="year-grid" id="yearGrid"></div></div>
   <div class="view" id="view-foerderung"><div class="foerd"><div><div class="card"><div class="title">🌱 Kinder mit Förderbedarf</div><div class="kids" id="kids"></div><button class="add" onclick="openChildModal()">+ Kind hinzufügen</button></div></div><div class="card" id="childDetail"><div class="detail-empty">Kind auswählen</div></div></div></div>
   <div class="view" id="view-stundenplan">
   <div class="card">
