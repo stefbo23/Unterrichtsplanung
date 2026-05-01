@@ -79,7 +79,7 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
     <button class="btn btn-outline btn-sm" onclick="clearWeekFocus()">Wochenschwerpunkte leeren</button>
   </div>
   <div id="weekFocusSummary" style="font-size:.82rem;color:var(--muted)">Noch keine Wochenschwerpunkte gewählt.</div>
-</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← zurück</button><span class="label" id="weekLabel"></span><button class="btn btn-outline btn-sm" onclick="changeWeek(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goToday()">Heute</button><button class="btn btn-green btn-sm" onclick="copyWochePrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importWeek')">📥 JSON einfügen</button></div><div class="two"><div><div class="week" id="weekGrid"></div></div><div class="sidebar"><div class="title">📋 Lehrwerk-Einheiten</div><p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Klick auf eine Einheit → im Stundenfenster übernehmen</p><div id="sidebar"></div></div></div></div>
+</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeWeek(-1)">← zurück</button><span class="label" id="weekLabel"></span><button class="btn btn-outline btn-sm" onclick="changeWeek(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goToday()">Heute</button><button class="btn btn-green btn-sm" onclick="copyWochePrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importWeek')">📥 JSON einfügen</button><button class="btn btn-outline btn-sm" onclick="printWeekPlan()">🖨 Drucken</button></div><div class="two"><div><div class="week" id="weekGrid"></div></div><div class="sidebar"><div class="title">📋 Lehrwerk-Einheiten</div><p style="font-size:.72rem;color:var(--muted);margin-bottom:10px">Klick auf eine Einheit → im Stundenfenster übernehmen</p><div id="sidebar"></div></div></div></div>
   <div class="view" id="view-tag"><div class="note">
   <b>So funktioniert die Tagesplanung:</b><br>
   1. Datum wählen<br>
@@ -87,7 +87,7 @@ main{max-width:1300px;margin:0 auto;padding:18px}.view{display:none}.view.on{dis
   3. Prompt in ChatGPT oder Claude einfügen<br>
   4. Nur den JSON-Teil zurückkopieren<br>
   5. Über <b>„📥 JSON einfügen“</b> übernehmen
-</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeTag(-1)">← zurück</button><span class="label" id="dayLabel"></span><button class="btn btn-outline btn-sm" onclick="changeTag(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goTodayDay()">Heute</button><input type="date" id="dayPicker" /><button class="btn btn-green btn-sm" onclick="copyDayPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importDay')">📥 JSON einfügen</button></div><div class="tag"><div class="line" id="dayLine"></div><div class="detail" id="dayDetail"></div></div></div>
+</div><div class="bar"><button class="btn btn-outline btn-sm" onclick="changeTag(-1)">← zurück</button><span class="label" id="dayLabel"></span><button class="btn btn-outline btn-sm" onclick="changeTag(1)">weiter →</button><button class="btn btn-outline btn-sm" onclick="goTodayDay()">Heute</button><input type="date" id="dayPicker" /><button class="btn btn-green btn-sm" onclick="copyDayPrompt()">📋 Prompt kopieren</button><button class="btn btn-outline btn-sm" onclick="openImport('importDay')">📥 JSON einfügen</button><button class="btn btn-outline btn-sm" onclick="printDayPlan()">🖨 Drucken</button></div><div class="tag"><div class="line" id="dayLine"></div><div class="detail" id="dayDetail"></div></div></div>
   <div class="view" id="view-monat"><div class="note">
   <b>So funktioniert die Monatsplanung:</b><br>
   1. Gewünschten Monat auswählen<br>
@@ -374,7 +374,250 @@ renderTag();
     if(btn){ btn.textContent = '🔑 Login'; btn.onclick = openLoginModal; }
   }
 }
-  function openWelcomeModal(){
+function escapeHtml(text){
+  return String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+function printHtmlDocument(title, bodyHtml){
+  const win = window.open('', '_blank');
+  if(!win){
+    alert('Druckfenster konnte nicht geöffnet werden.');
+    return;
+  }
+
+  const doc = `
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+      <meta charset="UTF-8">
+      <title>${escapeHtml(title)}</title>
+      <style>
+        body{
+          font-family: Arial, sans-serif;
+          color:#1A1612;
+          margin:24px;
+          line-height:1.4;
+        }
+        h1{
+          font-size:20px;
+          margin:0 0 6px 0;
+        }
+        .sub{
+          color:#6B6358;
+          font-size:12px;
+          margin-bottom:18px;
+        }
+        table{
+          width:100%;
+          border-collapse:collapse;
+          table-layout:fixed;
+        }
+        th, td{
+          border:1px solid #D9D3C7;
+          padding:8px;
+          vertical-align:top;
+          text-align:left;
+          font-size:12px;
+        }
+        th{
+          background:#F5F0E8;
+        }
+        .timecol{
+          width:90px;
+          font-weight:700;
+          background:#faf7f1;
+        }
+        .fach{
+          font-size:11px;
+          font-weight:700;
+          text-transform:uppercase;
+          margin-bottom:4px;
+        }
+        .thema{
+          font-size:12px;
+          font-weight:700;
+          margin-bottom:4px;
+        }
+        .small{
+          font-size:11px;
+          color:#6B6358;
+        }
+        .block{
+          border:1px solid #D9D3C7;
+          border-radius:8px;
+          padding:10px 12px;
+          margin-bottom:10px;
+          page-break-inside:avoid;
+        }
+        .section-title{
+          font-size:13px;
+          font-weight:700;
+          margin-bottom:6px;
+          text-transform:uppercase;
+          color:#6B6358;
+        }
+        @media print{
+          body{ margin:12mm; }
+          .no-print{ display:none !important; }
+        }
+      </style>
+    </head>
+    <body>
+      ${bodyHtml}
+      <script>
+        window.onload = function(){
+          window.print();
+        };
+      <\/script>
+    </body>
+    </html>
+  `;
+
+  win.document.open();
+  win.document.write(doc);
+  win.document.close();
+}
+  function printWeekPlan(){
+  const mon = getMonday(weekOffset);
+  const klasse = $('#klasse').value || '';
+  const schuljahr = $('#schuljahr').value || '';
+
+  let html = `
+    <h1>Wochenplan</h1>
+    <div class="sub">Klasse: ${escapeHtml(klasse)} · Schuljahr: ${escapeHtml(schuljahr)} · KW ${getKW(mon)}</div>
+    <table>
+      <thead>
+        <tr>
+          <th class="timecol">Stunde</th>
+          ${DAYS.map((d,i)=>{
+            const dt = new Date(mon.getTime() + i * 86400000);
+            return `<th>${escapeHtml(d)}<br><span class="small">${escapeHtml(fmtDate(dt))}</span></th>`;
+          }).join('')}
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  const maxSlots = getMaxStunden();
+
+  for(let s=0; s<maxSlots; s++){
+    html += `<tr><td class="timecol">${s+1}. Std<br><span class="small">${escapeHtml(TIMES[s] || '')}</span></td>`;
+
+    DAYS.forEach((_, ti)=>{
+      const d = new Date(mon.getTime() + ti * 86400000);
+      const key = `${dateKey(d)}_${s}`;
+      const L = lessons[key];
+      const planFach = getFaecherFuerTag(ti)[s] || '';
+      const fachLabel = L?.fach ? (SUBJECTS[L.fach] || L.fach) : (planFach ? (SUBJECTS[planFach] || planFach) : '');
+      const thema = L?.thema || '';
+      const verkn = L?.verknuepfung || '';
+
+      html += `<td>`;
+      if(L && L.fach){
+        html += `
+          <div class="fach">${escapeHtml(fachLabel)}</div>
+          <div class="thema">${escapeHtml(thema)}</div>
+          ${verkn ? `<div class="small">🔗 ${escapeHtml(verkn)}</div>` : ''}
+        `;
+      } else if(planFach){
+        html += `
+          <div class="fach">${escapeHtml(fachLabel)}</div>
+          <div class="small">noch nicht geplant</div>
+        `;
+      } else {
+        html += `<div class="small">–</div>`;
+      }
+      html += `</td>`;
+    });
+
+    html += `</tr>`;
+  }
+
+  html += `</tbody></table>`;
+
+  printHtmlDocument('Wochenplan', html);
+}
+  function printDayPlan(){
+  if(isWeekend(currentDay)){
+    alert('Für Wochenenden gibt es keinen Tagesplan.');
+    return;
+  }
+
+  const klasse = $('#klasse').value || '';
+  const schuljahr = $('#schuljahr').value || '';
+
+  let html = `
+    <h1>Tagesplan</h1>
+    <div class="sub">Klasse: ${escapeHtml(klasse)} · Schuljahr: ${escapeHtml(schuljahr)} · ${escapeHtml(fmtLong(currentDay))}</div>
+  `;
+
+  for(let s=0; s<6; s++){
+    const key = `${dateKey(currentDay)}_${s}`;
+    const L = lessons[key];
+
+    html += `<div class="block">`;
+    html += `<div class="section-title">${s+1}. Stunde · ${escapeHtml(TIMES[s] || '')}</div>`;
+
+    if(!L || !L.fach){
+      html += `<div class="small">Noch nicht geplant.</div>`;
+      html += `</div>`;
+      continue;
+    }
+
+    html += `<div class="thema">${escapeHtml(L.thema || '(kein Thema)')}</div>`;
+    html += `<div class="fach">${escapeHtml(SUBJECTS[L.fach] || L.fach)}</div>`;
+
+    if(L.kompetenz){
+      html += `<p><b>Lehrplanbezug:</b> ${escapeHtml(L.kompetenz)}</p>`;
+    }
+    if(L.verknuepfung){
+      html += `<p><b>Fächerübergreifend:</b> ${escapeHtml(L.verknuepfung)}</p>`;
+    }
+    if(L.mindestziel){
+      html += `<p><b>Mindestziel:</b> ${escapeHtml(L.mindestziel)}</p>`;
+    }
+    if(L.sozialformen){
+      html += `<p><b>Sozialformen:</b> ${escapeHtml(L.sozialformen)}</p>`;
+    }
+    if(Array.isArray(L.methoden) && L.methoden.length){
+      html += `<p><b>Methoden:</b> ${escapeHtml(L.methoden.join(', '))}</p>`;
+    }
+
+    if(Array.isArray(L.phasen) && L.phasen.length){
+      html += `<div class="section-title" style="margin-top:10px">AVIVA</div>`;
+      L.phasen.forEach(p=>{
+        html += `
+          <div style="margin-bottom:8px">
+            <b>${escapeHtml(p.name || '')}</b> ${p.min ? `(${escapeHtml(p.min)} Min)` : ''}<br>
+            ${p.beschreibung ? `${escapeHtml(p.beschreibung)}<br>` : ''}
+            ${p.sozialform ? `<span class="small">Sozialform: ${escapeHtml(p.sozialform)}</span><br>` : ''}
+            ${p.differenzierung ? `<span class="small">Differenzierung: ${escapeHtml(p.differenzierung)}</span>` : ''}
+          </div>
+        `;
+      });
+    }
+
+    if(L.diffUnten){
+      html += `<p><b>Differenzierung nach unten:</b> ${escapeHtml(L.diffUnten)}</p>`;
+    }
+    if(L.diffOben){
+      html += `<p><b>Differenzierung nach oben:</b> ${escapeHtml(L.diffOben)}</p>`;
+    }
+    if(L.material){
+      html += `<p><b>Material / Notizen:</b> ${escapeHtml(L.material)}</p>`;
+    }
+
+    html += `</div>`;
+  }
+
+  printHtmlDocument('Tagesplan', html);
+}
+function openWelcomeModal(){
   const hidden = localStorage.getItem('vs_hide_welcome');
   if(hidden === '1') return;
   const el = document.getElementById('welcomeModal');
