@@ -617,6 +617,67 @@ function printHtmlDocument(title, bodyHtml){
 
   printHtmlDocument('Tagesplan', html);
 }
+  function printSingleLesson(key, s, dateObj){
+  const L = lessons[key];
+  if(!L || !L.fach){
+    alert('Diese Stunde ist noch nicht geplant.');
+    return;
+  }
+
+  const klasse = $('#klasse').value || '';
+  const schuljahr = $('#schuljahr').value || '';
+  const fachLabel = SUBJECTS[L.fach] || L.fach;
+
+  let lessonDate = dateObj;
+  if(!lessonDate){
+    const datePart = key.split('_')[0];
+    lessonDate = new Date(datePart + 'T12:00:00');
+  }
+
+  let html = `
+    <h1>Einzelstunde</h1>
+    <div class="sub">
+      Klasse: ${escapeHtml(klasse)} · Schuljahr: ${escapeHtml(schuljahr)} ·
+      ${escapeHtml(fmtLong(lessonDate))} · ${s+1}. Stunde
+    </div>
+
+    <div class="block">
+      <div class="thema">${escapeHtml(L.thema || '(kein Thema)')}</div>
+      <div class="fach">${escapeHtml(fachLabel)}</div>
+
+      ${L.kompetenz ? `<p><b>Lehrplanbezug:</b> ${escapeHtml(L.kompetenz)}</p>` : ''}
+      ${L.verknuepfung ? `<p><b>Fächerübergreifend:</b> ${escapeHtml(L.verknuepfung)}</p>` : ''}
+      ${L.mindestziel ? `<p><b>Mindestziel:</b> ${escapeHtml(L.mindestziel)}</p>` : ''}
+      ${L.sozialformen ? `<p><b>Sozialformen:</b> ${escapeHtml(L.sozialformen)}</p>` : ''}
+      ${Array.isArray(L.methoden) && L.methoden.length ? `<p><b>Methoden:</b> ${escapeHtml(L.methoden.join(', '))}</p>` : ''}
+    </div>
+  `;
+
+  if(Array.isArray(L.phasen) && L.phasen.length){
+    html += `<div class="block"><div class="section-title">AVIVA</div>`;
+    L.phasen.forEach(p=>{
+      html += `
+        <div style="margin-bottom:10px">
+          <b>${escapeHtml(p.name || '')}</b> ${p.min ? `(${escapeHtml(p.min)} Min)` : ''}<br>
+          ${p.beschreibung ? `${escapeHtml(p.beschreibung)}<br>` : ''}
+          ${p.sozialform ? `<span class="small">Sozialform: ${escapeHtml(p.sozialform)}</span><br>` : ''}
+          ${p.differenzierung ? `<span class="small">Differenzierung: ${escapeHtml(p.differenzierung)}</span>` : ''}
+        </div>
+      `;
+    });
+    html += `</div>`;
+  }
+
+  html += `
+    <div class="block">
+      ${L.diffUnten ? `<p><b>Differenzierung nach unten:</b> ${escapeHtml(L.diffUnten)}</p>` : ''}
+      ${L.diffOben ? `<p><b>Differenzierung nach oben:</b> ${escapeHtml(L.diffOben)}</p>` : ''}
+      ${L.material ? `<p><b>Material / Notizen:</b> ${escapeHtml(L.material)}</p>` : ''}
+    </div>
+  `;
+
+  printHtmlDocument('Einzelstunde', html);
+}
 function openWelcomeModal(){
   const hidden = localStorage.getItem('vs_hide_welcome');
   if(hidden === '1') return;
@@ -1654,7 +1715,12 @@ function currentWeekKey(){
       }
 
       cell.innerHTML = L && L.fach
-        ? `<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div><div class="thema">${L.thema||''}</div>${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}`
+        ? `<div class="fach" style="color:${SCOL[L.fach]||'var(--ink)'}">${SUBJECTS[L.fach]||L.fach}</div>
+           <div class="thema">${L.thema||''}</div>
+           ${L.verknuepfung?`<div style="font-size:.62rem;color:var(--muted);margin-top:2px">🔗 ${L.verknuepfung}</div>`:''}
+           <div style="margin-top:6px">
+           <button class="btn btn-outline btn-sm" style="padding:2px 6px;font-size:.64rem" onclick="event.stopPropagation();printSingleLesson('${key}', ${s}, new Date('${dateKey(d)}T12:00:00'))">🖨</button>
+     </div>`
         : `<div class="empty">+ planen</div>`;
 
       cell.onclick = () => openLessonModal(key, ti, s, d);
@@ -1663,7 +1729,21 @@ function currentWeekKey(){
   }
 }
 function renderTag(){if(isWeekend(currentDay)){currentDay.setDate(currentDay.getDate()+1); return renderTag()} $('#dayLabel').textContent=fmtLong(currentDay); $('#dayPicker').value=dateKey(currentDay); const line=$('#dayLine'); line.innerHTML=''; for(let s=0;s<6;s++){if(s>0&&PAUSES[s-1]) line.insertAdjacentHTML('beforeend','<div class="pause">☕ Pause</div>'); const key=`${dateKey(currentDay)}_${s}`, L=lessons[key]; const div=document.createElement('div'); div.className='slot'+(L&&L.fach?' has':'')+(selectedSlot===s?' on':''); if(L&&L.fach) div.style.borderLeftColor=SCOL[L.fach]||'var(--gray)'; div.innerHTML=`<div class="slot-time">${s+1}. Std · ${TIMES[s]}</div>${L&&L.fach?`<div class="slot-fach" style="color:${SCOL[L.fach]}">${SUBJECTS[L.fach]||L.fach}</div><div class="slot-thema">${L.thema||''}</div>`:`<div class="empty">+ Stunde planen</div>`}`; div.onclick=()=>{selectedSlot=s; renderTag(); renderDayDetail(key,s)}; div.ondblclick=()=>openLessonModal(key,-1,s,currentDay); line.appendChild(div)} if(selectedSlot!==null) renderDayDetail(`${dateKey(currentDay)}_${selectedSlot}`,selectedSlot); else $('#dayDetail').innerHTML='<div class="detail-empty">← Stunde auswählen</div>'}
-function renderDayDetail(key,s){const L=lessons[key]; const box=$('#dayDetail'); if(!L||!L.fach){box.innerHTML=`<div class="detail-empty"><div><div style="margin-bottom:12px">${s+1}. Stunde · ${TIMES[s]}</div><button class="btn btn-green" onclick="openLessonModal('${key}',-1,${s},currentDay)">+ Stunde planen</button></div></div>`; return} const phases=(L.phasen||[]).map((p,i)=>`<div class="phase" style="background:${phaseColor(p.name,i)}"><span>${p.name}</span><small>${p.min||''}′</small></div>`).join(''); const phaseDetails=(L.phasen||[]).map((p,i)=>`<div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px"><div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:${phaseColor(p.name,i)};margin-bottom:6px">${p.name} · ${p.min||''} Min</div>${p.beschreibung?`<div class="sect-val" style="margin-bottom:6px">${p.beschreibung}</div>`:''}${p.sozialform?`<div style="font-size:.76rem;margin-bottom:4px"><b>Sozialform:</b> ${p.sozialform}</div>`:''}${p.differenzierung?`<div style="font-size:.76rem"><b>Differenzierung:</b> ${p.differenzierung}</div>`:''}</div>`).join(''); const methods=(L.methoden||[]).map(m=>`<span class="chip">${m}</span>`).join(''); box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px"><div><div class="detail-title">${L.thema||'(kein Thema)'}</div><div class="detail-sub">${s+1}. Stunde · ${TIMES[s]}</div></div><button class="btn btn-outline btn-sm" onclick="openLessonModal('${key}',-1,${s},currentDay)">✏ Bearbeiten</button></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span style="background:${SCOL[L.fach]};color:#fff;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700">${SUBJECTS[L.fach]||L.fach}</span></div>${L.phasen?.length?`<div class="sect"><div class="sect-label">AVIVA Überblick</div><div class="phases">${phases}</div></div><div class="sect"><div class="sect-label">AVIVA im Detail</div>${phaseDetails}</div>`:''}${L.methoden?.length?`<div class="sect"><div class="sect-label">Methoden</div><div class="chips">${methods}</div></div>`:''}${L.kompetenz?`<div class="sect"><div class="sect-label">Lehrplanbezug</div><div class="sect-val">${L.kompetenz}</div></div>`:''}${L.verknuepfung?`<div class="sect"><div class="sect-label">Fächerübergreifend</div><div class="sect-val">${L.verknuepfung}</div></div>`:''}${L.mindestziel?`<div class="sect"><div class="sect-label">Mindestziel</div><div class="sect-val">${L.mindestziel}</div></div>`:''}${L.diffUnten?`<div class="sect"><div class="sect-label">Differenzierung nach unten</div><div class="sect-val">${L.diffUnten}</div></div>`:''}${L.diffOben?`<div class="sect"><div class="sect-label">Differenzierung nach oben</div><div class="sect-val">${L.diffOben}</div></div>`:''}${L.sozialformen?`<div class="sect"><div class="sect-label">Sozialformen</div><div class="sect-val">${L.sozialformen}</div></div>`:''}${L.material?`<div class="sect"><div class="sect-label">Material / Notizen</div><div class="sect-val">${L.material}</div></div>`:''}`}
+function renderDayDetail(key,s){
+  const L=lessons[key];
+  const box=$('#dayDetail');
+
+  if(!L||!L.fach){
+    box.innerHTML=`<div class="detail-empty"><div><div style="margin-bottom:12px">${s+1}. Stunde · ${TIMES[s]}</div><button class="btn btn-green" onclick="openLessonModal('${key}',-1,${s},currentDay)">+ Stunde planen</button></div></div>`;
+    return;
+  }
+
+  const phases=(L.phasen||[]).map((p,i)=>`<div class="phase" style="background:${phaseColor(p.name,i)}"><span>${p.name}</span><small>${p.min||''}′</small></div>`).join('');
+  const phaseDetails=(L.phasen||[]).map((p,i)=>`<div style="border-left:4px solid ${phaseColor(p.name,i)};background:var(--bg);padding:10px 12px;border-radius:8px;margin-bottom:8px"><div style="font-size:.72rem;text-transform:uppercase;font-weight:700;color:${phaseColor(p.name,i)};margin-bottom:6px">${p.name} · ${p.min||''} Min</div>${p.beschreibung?`<div class="sect-val" style="margin-bottom:6px">${p.beschreibung}</div>`:''}${p.sozialform?`<div style="font-size:.76rem;margin-bottom:4px"><b>Sozialform:</b> ${p.sozialform}</div>`:''}${p.differenzierung?`<div style="font-size:.76rem"><b>Differenzierung:</b> ${p.differenzierung}</div>`:''}</div>`).join('');
+  const methods=(L.methoden||[]).map(m=>`<span class="chip">${m}</span>`).join('');
+
+  box.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;flex-wrap:wrap;margin-bottom:14px"><div><div class="detail-title">${L.thema||'(kein Thema)'}</div><div class="detail-sub">${s+1}. Stunde · ${TIMES[s]}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-outline btn-sm" onclick="printSingleLesson('${key}', ${s}, currentDay)">🖨 Drucken</button><button class="btn btn-outline btn-sm" onclick="openLessonModal('${key}',-1,${s},currentDay)">✏ Bearbeiten</button></div></div><div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px"><span style="background:${SCOL[L.fach]};color:#fff;padding:4px 10px;border-radius:6px;font-size:.75rem;font-weight:700">${SUBJECTS[L.fach]||L.fach}</span></div>${L.phasen?.length?`<div class="sect"><div class="sect-label">AVIVA Überblick</div><div class="phases">${phases}</div></div><div class="sect"><div class="sect-label">AVIVA im Detail</div>${phaseDetails}</div>`:''}${L.methoden?.length?`<div class="sect"><div class="sect-label">Methoden</div><div class="chips">${methods}</div></div>`:''}${L.kompetenz?`<div class="sect"><div class="sect-label">Lehrplanbezug</div><div class="sect-val">${L.kompetenz}</div></div>`:''}${L.verknuepfung?`<div class="sect"><div class="sect-label">Fächerübergreifend</div><div class="sect-val">${L.verknuepfung}</div></div>`:''}${L.mindestziel?`<div class="sect"><div class="sect-label">Mindestziel</div><div class="sect-val">${L.mindestziel}</div></div>`:''}${L.diffUnten?`<div class="sect"><div class="sect-label">Differenzierung nach unten</div><div class="sect-val">${L.diffUnten}</div></div>`:''}${L.diffOben?`<div class="sect"><div class="sect-label">Differenzierung nach oben</div><div class="sect-val">${L.diffOben}</div></div>`:''}${L.sozialformen?`<div class="sect"><div class="sect-label">Sozialformen</div><div class="sect-val">${L.sozialformen}</div></div>`:''}${L.material?`<div class="sect"><div class="sect-label">Material / Notizen</div><div class="sect-val">${L.material}</div></div>`:''}`;
+}
 function inWochenplanungÜbernehmen(monthId){
   const monthEntry = monthEntries.find(e => String(e.id) === String(monthId));
   if(!monthEntry){
