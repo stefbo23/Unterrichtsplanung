@@ -2594,6 +2594,35 @@ function cleanJsonText(raw, expectedType = 'array'){
 
   return t.trim();
 }
+  function getJsonHelpMessage(raw, expectedType = 'array'){
+  const t = String(raw || '').trim();
+
+  if(!t){
+    return 'Bitte zuerst JSON einfügen.';
+  }
+
+  if(expectedType === 'array'){
+    if(!t.includes('[') || !t.includes(']')){
+      return 'Es wurde kein JSON-Array gefunden. Bitte kopiere nur den Teil der KI-Antwort zwischen [ und ].';
+    }
+  }
+
+  if(expectedType === 'object'){
+    if(!t.includes('{') || !t.includes('}')){
+      return 'Es wurde kein JSON-Objekt gefunden. Bitte kopiere nur den Teil der KI-Antwort zwischen { und }.';
+    }
+  }
+
+  if(t.includes('```')){
+    return 'Die Antwort enthält noch Markdown-Codeblöcke. Bitte kopiere möglichst nur den JSON-Teil.';
+  }
+
+  if(/^[^\[\{]+/s.test(t)){
+    return 'Vor dem JSON steht noch Erklärungstext. Bitte kopiere möglichst erst ab dem eigentlichen JSON.';
+  }
+
+  return 'Das JSON konnte nicht gelesen werden. Bitte prüfe, ob die KI wirklich nur gültiges JSON ausgegeben hat.';
+}
 function importDayJson(){
   let t = $('#importDayText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
@@ -2627,9 +2656,9 @@ function importDayJson(){
     renderWeek();
     renderTag();
     toast('Tagesplan übernommen ✓');
-  }catch(e){
-    alert('Ungültiges JSON für Tagesplan. Bitte nur den JSON-Teil einfügen.');
-  }
+ }catch(e){
+  alert('Tagesplan konnte nicht übernommen werden.\n\n' + getJsonHelpMessage($('#importDayText').value, 'array'));
+}
 }
 function importWeekJson(){
   let t = $('#importWeekText').value.trim();
@@ -2683,9 +2712,10 @@ function importWeekJson(){
     renderTag();
     toast('Wochenplan übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON für Wochenplan.');
-  }
-}async function importMonthJson(){
+  alert('Wochenplan konnte nicht übernommen werden.\n\n' + getJsonHelpMessage($('#importWeekText').value, 'array'));
+}
+}
+async function importMonthJson(){
   let t = $('#importMonthText').value.trim();
   if(!t) return toast('Bitte JSON einfügen');
 
@@ -2718,8 +2748,8 @@ function importWeekJson(){
     renderMonth();
     toast('Monatsplanung übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON für Monatsplanung. Bitte nur den JSON-Teil einfügen.');
-  }
+  alert('Monatsplanung konnte nicht übernommen werden.\n\n' + getJsonHelpMessage($('#importMonthText').value, 'array'));
+}
 }
 function normalizeFach(fach){
   const f = String(fach || '').trim().toLowerCase();
@@ -2799,8 +2829,8 @@ async function importYearJson(){
     renderYear();
     toast('Jahresplan übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON für Jahresplan. Bitte nur den JSON-Teil einfügen.');
-  }
+  alert('Jahresplanung konnte nicht übernommen werden.\n\n' + getJsonHelpMessage($('#importYearText').value, 'array'));
+}
 }
 function changeWeek(d){weekOffset+=d; renderWeek()} function goToday(){weekOffset=0; renderWeek()}
 function changeTag(d){currentDay.setDate(currentDay.getDate()+d); while(isWeekend(currentDay)) currentDay.setDate(currentDay.getDate()+d); selectedSlot=null; renderTag(); saveState()} function goTodayDay(){currentDay=new Date(); currentDay.setHours(0,0,0,0); if(isWeekend(currentDay)) changeTag(1); selectedSlot=null; renderTag(); saveState()}
@@ -2838,8 +2868,8 @@ async function importChildJson(){
     showChild(id);
     toast('Förderplan übernommen ✓');
   }catch(e){
-    alert('Ungültiges JSON. Bitte nur den JSON-Teil aus der KI-Antwort einfügen.');
-  }
+  alert('Förderplan konnte nicht übernommen werden.\n\n' + getJsonHelpMessage(document.getElementById('importChildText').value, 'object'));
+}
 }
 function closeModal(id){$('#'+id).classList.remove('open')} $$('.modal-wrap').forEach(m=>m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open')}))
 init();
